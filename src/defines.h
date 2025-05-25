@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #define UART_BAUD             115200                  // UART3 baud rate (short wired cable)
 
 // =========================================================
@@ -33,3 +35,28 @@
 #define LEDU_OFF()      {GPIOB->BRR = 1<<10;}
 #define LEDU_ON()       {GPIOB->BSRR = 1<<10;}
 #define LEDU_TOGGLE()  {(GPIOB->ODR & (1<<10)) ? (GPIOB->BRR=1<<10) : (GPIOB->BSRR = 1<<10);}
+
+
+#define PWM_FREQ            12000     // PWM frequency in Hz / is also used for buzzer
+#define PWM_RES   (72000000 / 2 / PWM_FREQ)          // = 2250
+#define DEAD_TIME             30 // 48     // PWM deadtime
+#define A2BIT_CONV             50     // A to bit for current conversion on ADC. Example: 1 A = 50, 2 A = 100, etc
+
+// Limitation settings
+#define I_MOT_MAX       15              // [A] Maximum single motor current limit
+#define I_DC_MAX        17              // [A] Maximum stage2 DC Link current limit for Commutation and Sinusoidal types (This is the final current protection. Above this value, current chopping is applied. To avoid this make sure that I_DC_MAX = I_MOT_MAX + 2A)
+#define N_MOT_MAX       1000            // [rpm] Maximum motor speed limit
+
+
+#define CURR_DC_MAX (I_DC_MAX * A2BIT_CONV)
+
+typedef struct {
+    uint16_t dcr;
+    uint16_t rrB;
+    uint16_t rrC;
+    uint16_t batt1;
+    uint16_t temp;
+} adc_buf_t;
+
+#define ABS(a) (((a) < 0) ? -(a) : (a))
+#define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
