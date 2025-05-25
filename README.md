@@ -27,7 +27,7 @@ https://github.com/RoboDurden/Hoverboard-Firmware-Hack-Gen2.x-GD32/blob/main/Hov
 
 # hover-controller
 
-
+```
 Gen2.4.1
 
 master, master-slave uart 
@@ -35,9 +35,9 @@ master, master-slave uart
 halla        ( 0):    28 (PC15)
 hallb        ( 1):    26 (PC13)
 hallc        ( 2):    27 (PC14)
-ledr         ( 3):     8 (PA11)
-ledg         ( 4):    32 (PD3)
-ledb         ( 5):    31 (PD2)
+ledG (DG)    ( 3):     8 (PA11)
+ledY (DY)    ( 4):    32 (PD3)
+ledR (DR)    ( 5):    31 (PD2)
 ledu         ( 6):    23 (PB10)
 ledd         ( 7): 65535 (not set)
 buzzer       ( 8): 65535 (not set)
@@ -85,7 +85,7 @@ rx           (15):    21 (PB8)
 
 
 uint16_t pinstorage[64]={26, 27, 28, 8, 32, 31, 23, 65535, 22, 65535, 65535, 65535, 65535, 65535, 20, 21, 65535, 65535, 65535, 65535, 65535, 65535, 65535, 65535, 65535, 65535, 65535, 65535, 65535, 65535, 65535, 65535, 56491, 31, 250, 0, 19200, 8192, 1, 30, 0, 10, 300, 1, 1, 42000, 32000, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
+```
 
 
 ## Прошивка
@@ -96,3 +96,23 @@ uint16_t pinstorage[64]={26, 27, 28, 8, 32, 31, 23, 65535, 22, 65535, 65535, 655
 pyocd pack install mm32spin05
 ```
 
+Довно не міг прошити. Здається вийшло зтерти процесор через Windows, орігінальний ST-Link та команду:
+
+```
+.venv\Scripts\python.exe -m pyocd erase -t mm32spin05pf --chip -f "100khz" -M under-reset
+```
+
+Під MacOS це теж працює
+
+```
+pyocd erase -t mm32spin05pf --chip -f "100khz" -M under-reset
+```
+
+Прошиваю через
+
+```
+pyocd flash -t mm32spin05pf --chip -f "100khz" -M under-reset firmware.hex
+```
+
+
+Аллиллуя! На ноге DG начало мигать.

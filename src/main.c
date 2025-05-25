@@ -14,9 +14,17 @@ int main(void)
     OFF_PORT->BSRR = 1<<OFF_PIN;   // Activate Latch
     for(;;) {
         LEDR_ON();
-        delay_ms(1000);
+        delay_ms(100);
+        LEDG_ON();
+        delay_ms(100);
+        LEDY_ON();
+        delay_ms(800);
         LEDR_OFF();
-        delay_ms(1000);
+        delay_ms(100);
+        LEDG_OFF();
+        delay_ms(100);
+        LEDY_OFF();
+        delay_ms(800);
         UART_tx();
     }
 }
