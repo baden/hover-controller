@@ -35,19 +35,19 @@ master, master-slave uart
 halla        ( 0):    28 (PC15)
 hallb        ( 1):    26 (PC13)
 hallc        ( 2):    27 (PC14)
-ledG (DG)    ( 3):     8 (PA11)
-ledY (DY)    ( 4):    32 (PD3)
-ledR (DR)    ( 5):    31 (PD2)
+ledG (DG)    ( 3):     8 (PA11)     +
+ledY (DY)    ( 4):    32 (PD3)      +
+ledR (DR)    ( 5):    31 (PD2)      +
 ledu         ( 6):    23 (PB10)
 ledd         ( 7): 65535 (not set)
 buzzer       ( 8): 65535 (not set)
 button       ( 9):    22 (PB9)
-latch        (10):    15 (PB2)      Тут начеб-то співпало
+latch        (10):    15 (PB2)      + Тут співпало
 charge       (11): 65535 (not set)
 vbat         (12):    14 (PB1)
 itotal       (13): 65535 (not set)
-tx           (14):    19 (PB6)      Тут начеб-то співпало
-rx           (15):    17 (PB4)      Тут начеб-то співпало
+tx           (14):    19 (PB6)      + Тут співпало
+rx           (15):    17 (PB4)      + Тут співпало
 
 
 Попередньо керування мосфетами:

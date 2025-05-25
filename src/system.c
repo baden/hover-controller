@@ -69,7 +69,7 @@ void UART_Init(void)
 	uint16_t uartdiv = SystemCoreClock / UART_BAUD;  
 	UART1->BRR = uartdiv / 16;   // Mantissa
 	UART1->FRA = uartdiv % 16;   // Fraction
-	//UART1->IER = 	UART_IER_RX;
+	UART1->IER = 	UART_IER_RX;
 	
     NVIC_EnableIRQ(UART1_IRQn);  
 }
