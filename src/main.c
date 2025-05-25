@@ -23,8 +23,8 @@ volatile int wr = 0;
 // 150 = 10.46V
 
 int sinus_amplitude = 20; // Amplitude of sinusoidal signal for testing
-
-#define SINUS_FREQ  1000 // Frequency of sinusoidal signal in Hz
+int speed = 60;     // Швидкість в обертах на хвилину (rpm) для фази
+bool direction = true; // Напрямок обертання: true - вперед, false - назад
 
 #define SINUS_TABLE_SIZE  32 // Size of sinusoidal table
 
@@ -71,24 +71,26 @@ int main(void)
         tfp_printf(
             "millis:%d"
             "ADC"
-            " rrB:%d"
-            " rrC:%d"
-            " dcr:%d"
+            " cur_phaB:%d"
+            " cur_phaC:%d"
+            " cur_DC:%d"
             " batt1:%d"
             " temp:%d"
-            "  enable:%s"
-            "  ur:%d"
-            "  vr:%d"
-            "  wr:%d"
+            " enable:%s"
+            " speed:%d"
+            " direction:%d"
+            " sinus_amplitude:%d"
             "\r\n",
             millis,
-            adc_buffer.rrB,
-            adc_buffer.rrC,
-            adc_buffer.dcr,
+            cur_phaB,
+            cur_phaC,
+            cur_DC,
             adc_buffer.batt1,
             adc_buffer.temp,
             enable ? "+" : "-",
-            ur, vr, wr
+            speed,
+            direction,
+            sinus_amplitude
         );
     }
 }
@@ -96,17 +98,30 @@ int main(void)
 void uart_data_cb(char v)
 {
     if(v == '1') {
-        ur++;
+        if(speed > 0) {
+            speed--;
+        }
     } else if(v == '2') {
-        vr++;
+        speed++;
     } else if(v == '3') {
-        wr++;
-    } else if(v == 'q') {
-        ur--;
-    } else if(v == 'w') {
-        vr--;
-    } else if(v == 'e') {
-        wr--;
+        direction = !direction;  // Toggle direction
+        tfp_printf("Direction changed to: %s\r\n", direction ? "forward" : "backward");
+    } else if(v == '4') {
+        sinus_amplitude -= 5;  // Decrease amplitude
+        if (sinus_amplitude < 0) sinus_amplitude = 0;
+        tfp_printf("Sinus amplitude decreased to: %d\r\n", sinus_amplitude);
+    } else if(v == '5') {
+        sinus_amplitude += 5;  // Increase amplitude
+        if (sinus_amplitude > 100) sinus_amplitude = 100;
+        tfp_printf("Sinus amplitude increased to: %d\r\n", sinus_amplitude);
+    } else if(v == '6') {
+        enable = 1;  // Enable motor
+        TIM1->BDTR |= TIM_BDTR_MOE; // Enable main output
+        tfp_printf("Motor enabled\r\n");
+    } else if(v == '7') {
+        enable = 0;  // Disable motor
+        TIM1->BDTR &= ~TIM_BDTR_MOE; // Disable main output
+        tfp_printf("Motor disabled\r\n");
     } else if(v == ' ') {
         enable = !enable;  // Toggle enable state
     }
@@ -260,11 +275,38 @@ void  ADC1_COMP_IRQHandler(void)
     wr  = rtY.DC_phaC;
     #endif
 
-    // TODO: Use millis for choosing the sinusoidal vector_index
-    ur = sinus_table[vector_index] * sinus_amplitude / 100; // Scale to amplitude
-    vr = sinus_table[(vector_index + SINUS_TABLE_SIZE / 3) % SINUS_TABLE_SIZE] * sinus_amplitude / 100; // Phase shift by 120 degrees
-    wr = sinus_table[(vector_index + 2 * SINUS_TABLE_SIZE / 3) % SINUS_TABLE_SIZE] * sinus_amplitude / 100; // Phase shift by 240 degrees
-    vector_index = (vector_index + 1) % SINUS_TABLE_SIZE; // Increment index for next sinusoidal value
+
+
+
+
+// --- Phase calculation based on millis, with phase continuity on speed change ---
+static int32_t phase_offset = 0; // зсув фази для збереження положення при зміні швидкості
+static int prev_speed = 0;
+static bool prev_direction = true;
+// speed: об/хв, millis: мс
+int actual_speed = speed;
+if (!direction) actual_speed = -speed;
+
+// Якщо змінилась швидкість або напрямок, зберігаємо фазу
+if (actual_speed != prev_speed || direction != prev_direction) {
+    // Обчислюємо поточну фазу
+    int64_t phase_now = ((int64_t)prev_speed * (int64_t)millis * SINUS_TABLE_SIZE) / 60000;
+    if (!prev_direction) phase_now = -phase_now;
+    phase_offset = (phase_offset + (int32_t)(phase_now % (SINUS_TABLE_SIZE))) % SINUS_TABLE_SIZE;
+    prev_speed = actual_speed;
+    prev_direction = direction;
+}
+
+// Основний розрахунок фази
+int64_t phase = ((int64_t)actual_speed * (int64_t)millis * SINUS_TABLE_SIZE) / 60000;
+phase = phase_offset + (phase % SINUS_TABLE_SIZE);
+if (phase < 0) phase += SINUS_TABLE_SIZE;
+vector_index = phase % SINUS_TABLE_SIZE;
+
+    // Фази для трифазного двигуна (A, B, C):
+    ur = sinus_table[vector_index] * sinus_amplitude / 100;
+    vr = sinus_table[(vector_index + SINUS_TABLE_SIZE / 3) % SINUS_TABLE_SIZE] * sinus_amplitude / 100;
+    wr = sinus_table[(vector_index + 2 * SINUS_TABLE_SIZE / 3) % SINUS_TABLE_SIZE] * sinus_amplitude / 100;
 
     // Apply commands (Ось шо ми повинні зробити в кінці кінців)
     #if 1

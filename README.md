@@ -30,7 +30,7 @@ https://github.com/RoboDurden/Hoverboard-Firmware-Hack-Gen2.x-GD32/blob/main/Hov
 ```
 Gen2.4.1
 
-master, master-slave uart 
+master, master-slave uart
 
 halla        ( 0):    28 (PC15)
 hallb        ( 1):    26 (PC13)
@@ -44,11 +44,12 @@ buzzer       ( 8): 65535 (not set)
 button       ( 9):    22 (PB9)
 latch        (10):    15 (PB2)      + Тут співпало
 charge       (11): 65535 (not set)
-vbat         (12):    14 (PB1)
+vbat         (12):    14 (PB1)      + Тут співпало
 itotal       (13): 65535 (not set)
 tx           (14):    19 (PB6)      + Тут співпало
 rx           (15):    17 (PB4)      + Тут співпало
 
+// Сходе вимірювання струму фаз не працює.
 
 Попередньо керування мосфетами:
 
