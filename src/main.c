@@ -25,8 +25,11 @@ volatile int wr = 0;
 // 150 = 10.46V
 
 int sinus_amplitude = 100; // Amplitude of sinusoidal signal for testing
-int speed = 60;     // Швидкість в обертах на хвилину (rpm) для фази
-bool direction = true; // Напрямок обертання: true - вперед, false - назад
+volatile int speed = 60;   // Швидкість в обертах на хвилину (rpm) для фази
+#define direction (speed >= 0) // Напрямок обертання: true - вперед, false - назад
+// bool direction = true; // Напрямок обертання: true - вперед, false - назад
+
+volatile bool enablePID = false; // Enable motor PID control
 
 #define SINUS_TABLE_SIZE  128 // Size of sinusoidal table (4x more)
 
@@ -46,10 +49,26 @@ const int sinus_table[SINUS_TABLE_SIZE] = {
 int vector_index = 0; // Index for sinusoidal vector
 
 // TODO: Hide later
+// Фаза двигуна, виміряна через датчики Холла
 volatile int angle_by_hall_cur = 0; // Angle, detected by hall sensors for current position (0..359 degrees)
 volatile int turns_by_hall = 0; // Number of turns detected by hall sensors (can be negative)
+volatile int sync_phase = 120; // Synchronization phase for hall sensors and motor
+// Абсолютна фаза
+#define phase_by_hall_abs (turns_by_hall * 360 + angle_by_hall_cur - sync_phase)
 // phase_by_hall_abs calculates as turns_by_hall * 360 + angle_by_hall_cur
 // volatile int phase_by_hall_abs = 0; // Current phase by hall sensors in absolute value (-2^31 .. 2^31-1)
+
+// Фаза двигуна, яка встановлена в контролері
+volatile int motor_phase_abs = 0; // Current motor phase absolute in degrees (-2^31..2^31 degrees)
+// volatile int motor_turns = 0; // Current motor turns (can be negative)
+#define motor_turns (motor_phase_abs / 360) // Calculate current motor turns based on motor_phase_abs
+#define motor_phase (motor_phase_abs % 360) // Calculate current motor phase in degrees (0..359 degrees)
+
+// Controller must try to keep motor_phase is equal to phase_by_hall_abs
+// Use PID controller to adjust motor_phase_abs based on phase_by_hall_abs
+
+// Фаза, яку ми хочемо встановити в контролері
+volatile int phase_to_set_abs = 0; // Phase to set in controller (0..359 degrees)
 
 int main(void)
 {
@@ -87,30 +106,29 @@ int main(void)
         uint8_t hall_v = !(GPIOC->IDR & (1<<14));
         uint8_t hall_w = !(GPIOC->IDR & (1<<13));
 
-        // Абсолютна фаза
-        int phase_by_hall_abs = turns_by_hall * 360 + angle_by_hall_cur;
-
         tfp_printf(
             // " ADC:%d"
-            " cur_phaB:%d"
-            " cur_phaC:%d"
-            " cur_DC:%d"
-            " batt1:%d"
+            // " cur_phaB:%d"
+            // " cur_phaC:%d"
+            // " cur_DC:%d"
+            // " batt1:%d"
             // " temp:%d"
             " en:%s"
             " speed:%d"
             " dir:%d"
             " sinus_U:%d"
             " turns_by_hall:%d"
-            " angle_hall:%d"
-            " phase_hall:%d"
+            " angle_h:%d"
+            " phase_h:%d"
+            " phase_m:%d"
+            " phase_s:%d"
             " u:%c v:%c w:%c"
             "\r\n",
             // adc_irq_counter,
-            cur_phaB,
-            cur_phaC,
-            cur_DC,
-            adc_buffer.batt1 * 1000 / 40, // Convert to volts (assuming 40 is the divisor for milivoltage)
+            // cur_phaB,
+            // cur_phaC,
+            // cur_DC,
+            // adc_buffer.batt1 * 1000 / 40, // Convert to volts (assuming 40 is the divisor for milivoltage)
             // adc_buffer.temp,
             enable ? "1" : "0",
             speed,
@@ -119,6 +137,8 @@ int main(void)
             turns_by_hall,
             angle_by_hall_cur,
             phase_by_hall_abs,
+            motor_phase_abs,
+            phase_to_set_abs,
             hall_u ? '1' : '0',
             hall_v ? '1' : '0',
             hall_w ? '1' : '0'
@@ -130,17 +150,35 @@ int main(void)
 void uart_data_cb(char v)
 {
     if(v == '1') {
+        #if 0
         // Decrease speed by 10%
         speed = speed * 90 / 100; // Decrease speed by 10%
         if(speed > 0) {
             speed--;
         }
+        #endif
+        motor_phase_abs -= 10; // Decrease motor phase by 10 degrees
     } else if(v == '2') {
+        #if 0
         speed = speed * 110 / 100; // Increase speed by 10%
         speed++;
+        #endif
+        motor_phase_abs += 10; // Increase motor phase by 10 degrees
+    } else if(v == 'q') {
+        phase_to_set_abs -= 10; // Decrease phase to set by 10 degrees
+    } else if(v == 'w') {
+        phase_to_set_abs += 10; // Increase phase to set by 10 degrees
+    } else if(v == 'a') {
+        speed -= 5; // Decrease speed by 5 rpm
+        if (speed < 0) speed = 0;
+        tfp_printf("Speed decreased to: %d\r\n", speed);
+    } else if(v == 's') {
+        speed += 5; // Increase speed by 5 rpm
+        if (speed > 300) speed = 300; // Limit max speed to 300 rpm
+        tfp_printf("Speed increased to: %d\r\n", speed);
     } else if(v == '3') {
-        direction = !direction;  // Toggle direction
-        tfp_printf("Direction changed to: %s\r\n", direction ? "forward" : "backward");
+        // direction = !direction;  // Toggle direction
+        // tfp_printf("Direction changed to: %s\r\n", direction ? "forward" : "backward");
     } else if(v == '4') {
         sinus_amplitude -= 5;  // Decrease amplitude
         if (sinus_amplitude < 0) sinus_amplitude = 0;
@@ -157,6 +195,16 @@ void uart_data_cb(char v)
         enable = 0;  // Disable motor
         TIM1->BDTR &= ~TIM_BDTR_MOE; // Disable main output
         tfp_printf("Motor disabled\r\n");
+    } else if(v == '9') {
+        enablePID = !enablePID;  // Toggle PID control
+        tfp_printf("PID control %s\r\n", enablePID ? "enabled" : "disabled");
+    } else if(v == '0') {
+        // Sync phases motor and hall sensors
+        // phase_by_hall_abs
+        // (turns_by_hall * 360 + angle_by_hall_cur - sync_phase) needs to be equal to motor_phase_abs
+        sync_phase = (turns_by_hall * 360 + angle_by_hall_cur) - motor_phase_abs;
+        // sync_phase = phase_by_hall_abs - motor_phase_abs;
+        tfp_printf("Sync phase set to: %d\r\n", sync_phase);
     } else if(v == ' ') {
         enable = !enable;  // Toggle enable state
     }
@@ -254,9 +302,9 @@ void  ADC1_COMP_IRQHandler(void)
 
     adc_irq_counter++;
 
-    adc_buffer.rrB = (ADC1->ADDR0 - ADC1->ADDR1) & 0xFFF;
-    adc_buffer.rrC = (ADC1->ADDR4 - ADC1->ADDR5) & 0xFFF;
-    adc_buffer.dcr = ADC1->ADDR7 & 0xFFF;
+    adc_buffer.rrB = (ADC1->ADDR0 - ADC1->ADDR1) & 0xFFF;       // ADC1_CH0(PA0) - ADC1_CH1(PA1) phase b
+    adc_buffer.rrC = (ADC1->ADDR4 - ADC1->ADDR5) & 0xFFF;       // ADC1_CH4(PA4) - ADC1_CH5(PA5) phase c
+    adc_buffer.dcr = ADC1->ADDR7 & 0xFFF;                       // ADC1_CH7(PA7) DC Link current
     adc_buffer.batt1 = ADC1->ADDR9 & 0xFFF;
     adc_buffer.temp =  ADC1->ADDR14 & 0xFFF;
 
@@ -383,38 +431,82 @@ void  ADC1_COMP_IRQHandler(void)
     wr  = rtY.DC_phaC;
     #endif
 
-
+#if 0
 // --- Phase calculation based on millis, with phase continuity on speed/direction change ---
 #define PHASE_FRAC_BITS 16
 #define PHASE_FRAC_MASK ((1UL << PHASE_FRAC_BITS) - 1)
-static uint32_t phase_accum = 0;
-static uint32_t last_millis = 0;
 
-// Розрахунок phase_step: фазовий приріст за 1 мс (speed — в об/хв)
-uint32_t phase_step = ((uint64_t)ABS(speed) * (1UL << PHASE_FRAC_BITS) * SINUS_TABLE_SIZE) / 60 / 1000;
+    static uint32_t phase_accum = 0;
+    static uint32_t last_millis = 0;
 
-uint32_t now = millis;
-uint32_t delta_ms = now - last_millis;
-last_millis = now;
+    // Розрахунок phase_step: фазовий приріст за 1 мс (speed — в об/хв)
+    uint32_t phase_step = ((uint64_t)ABS(speed) * (1UL << PHASE_FRAC_BITS) * SINUS_TABLE_SIZE) / 60 / 1000;
 
-if (direction) {
-    phase_accum += phase_step * delta_ms;
-} else {
-    phase_accum -= phase_step * delta_ms;
-}
-vector_index = (phase_accum >> PHASE_FRAC_BITS) % SINUS_TABLE_SIZE;
+    uint32_t now = millis;
+    uint32_t delta_ms = now - last_millis;
+    last_millis = now;
+
+    if (direction) {
+        phase_accum += phase_step * delta_ms;
+    } else {
+        phase_accum -= phase_step * delta_ms;
+    }
+    vector_index = (phase_accum >> PHASE_FRAC_BITS) % SINUS_TABLE_SIZE;
 
     // Фази для трифазного двигуна (A, B, C):
     ur = sinus_table[vector_index] * sinus_amplitude / 100;
     vr = sinus_table[(vector_index + SINUS_TABLE_SIZE / 3) % SINUS_TABLE_SIZE] * sinus_amplitude / 100;
     wr = sinus_table[(vector_index + 2 * SINUS_TABLE_SIZE / 3) % SINUS_TABLE_SIZE] * sinus_amplitude / 100;
+#endif
+
+    if(enablePID) {
+        // Намагаємося синхронізувати фазу phase_to_set_abs з фазою, визначеною датчиками Холла (phase_by_hall_abs)
+        // Не намагатись зробити точніше ніж 60 градусів
+        // Значення фази абсолютне, тому не треба враховувати перехід через 0 градусів
+        // TODO: Задіяти PID контролер для синхронізації фаз
+        int phase_error = phase_by_hall_abs - phase_to_set_abs; // Calculate phase error
+        if(ABS(phase_error) > 60) {
+            // Тимчасово спрощена процедура синхронізації
+            if(phase_error < 0) {
+                // motor_phase_abs += 10; // Increase motor phase by 10 degrees
+                speed = ABS(phase_error) / 60; //1;
+                if(speed > 10) speed = 10; // Limit speed to 100 rpm
+            } else {
+                // motor_phase_abs -= 10; // Decrease motor phase by 10 degrees
+                speed = -ABS(phase_error) / 60; //-1;
+                if(speed < -10) speed = -10; // Limit speed to -100 rpm
+            }
+        } else {
+            // Якщо фаза близька до бажаної, то зупиняємося
+            speed = 0; // Stop the motor
+        }
+
+        // Розрахуємо нове значення motor_phase_abs в залежності від speed
+        // TODO: Треба обмежити значення швидкості
+        // TODO: Треба обмежити значення прискорення
+        static int debounce = 0;
+        if(debounce < 30) { // 400 ітерацій в секунду
+            debounce++;
+        } else {
+            debounce = 0;
+            motor_phase_abs += speed;
+        }
+    }
+
+    // Фази для трифазного двигуна (A, B, C):
+    unsigned r_index = motor_phase * SINUS_TABLE_SIZE / 360; // Convert motor phase to index in sinus_table
+    // Ensure index is within bounds
+    r_index = r_index % SINUS_TABLE_SIZE; // Wrap around if necessary
+    // Calculate motor phase based on speed and direction
+    ur = sinus_table[r_index] * sinus_amplitude / 100;
+    vr = sinus_table[(r_index + SINUS_TABLE_SIZE / 3) % SINUS_TABLE_SIZE] * sinus_amplitude / 100;
+    wr = sinus_table[(r_index + 2 * SINUS_TABLE_SIZE / 3) % SINUS_TABLE_SIZE] * sinus_amplitude / 100;
 
     // Apply commands (Ось шо ми повинні зробити в кінці кінців)
-    #if 1
     TIM1->CCR1  = (uint16_t)CLAMP(ur + PWM_RES / 2, pwm_margin, PWM_RES-pwm_margin);
     TIM1->CCR2  = (uint16_t)CLAMP(vr + PWM_RES / 2, pwm_margin, PWM_RES-pwm_margin);
     TIM1->CCR3  = (uint16_t)CLAMP(wr + PWM_RES / 2, pwm_margin, PWM_RES-pwm_margin);
-    #endif
+
     // =================================================================
 
     // Indicate task complete
