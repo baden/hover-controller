@@ -47,7 +47,9 @@ int vector_index = 0; // Index for sinusoidal vector
 
 // TODO: Hide later
 volatile int angle_by_hall_cur = 0; // Angle, detected by hall sensors for current position (0..359 degrees)
-volatile int phase_by_hall_abs = 0; // Current phase by hall sensors in absolute value (-2^31 .. 2^31-1)
+volatile int turns_by_hall = 0; // Number of turns detected by hall sensors (can be negative)
+// phase_by_hall_abs calculates as turns_by_hall * 360 + angle_by_hall_cur
+// volatile int phase_by_hall_abs = 0; // Current phase by hall sensors in absolute value (-2^31 .. 2^31-1)
 
 int main(void)
 {
@@ -85,6 +87,9 @@ int main(void)
         uint8_t hall_v = !(GPIOC->IDR & (1<<14));
         uint8_t hall_w = !(GPIOC->IDR & (1<<13));
 
+        // Абсолютна фаза
+        int phase_by_hall_abs = turns_by_hall * 360 + angle_by_hall_cur;
+
         tfp_printf(
             // " ADC:%d"
             " cur_phaB:%d"
@@ -96,6 +101,7 @@ int main(void)
             " speed:%d"
             " dir:%d"
             " sinus_U:%d"
+            " turns_by_hall:%d"
             " angle_hall:%d"
             " phase_hall:%d"
             " u:%c v:%c w:%c"
@@ -110,6 +116,7 @@ int main(void)
             speed,
             direction,
             sinus_amplitude,
+            turns_by_hall,
             angle_by_hall_cur,
             phase_by_hall_abs,
             hall_u ? '1' : '0',
@@ -161,6 +168,81 @@ void uart_data_cb(char v)
 
 // This margin allows to have a window in the PWM signal
 static int16_t pwm_margin = 0; // Для FOC контролера це 300, для інших контролерів це 0
+
+// Declare as always inline to optimize the function call
+static void __inline__ update_hall_angle(void)
+{
+    // ========================= MOTOR ===========================
+    // Get hall sensors values
+    uint8_t hall_u = !(GPIOC->IDR & (1<<15));
+    uint8_t hall_v = !(GPIOC->IDR & (1<<14));
+    uint8_t hall_w = !(GPIOC->IDR & (1<<13));
+
+    static int angle_by_hall_prev = 0; // Previous angle for hall sensors
+
+    // Calculate new phase angle based on hall sensors to angle_by_hall variable
+
+    // prev
+    // u v h  angle
+    // 0 0 1 ->   0
+    // 0 1 1 ->  60
+    // 0 1 0 -> 120
+    // 1 1 0 -> 180
+    // 1 0 0 -> 240
+    // 1 0 1 -> 300
+
+    if (!hall_u && !hall_v && hall_w) {
+        angle_by_hall_cur = 0;   // 0 degrees
+    } else if (!hall_u && hall_v && hall_w) {
+        angle_by_hall_cur = 60;  // 60 degrees
+    } else if (!hall_u && hall_v && !hall_w) {
+        angle_by_hall_cur = 120; // 120 degrees
+    } else if (hall_u && hall_v && !hall_w) {
+        angle_by_hall_cur = 180; // 180 degrees
+    } else if (hall_u && !hall_v && !hall_w) {
+        angle_by_hall_cur = 240; // 240 degrees
+    } else if (hall_u && !hall_v && hall_w) {
+        angle_by_hall_cur = 300; // 300 degrees
+    } else {
+        // Заборонена комбінація датчиків..
+        // Не оновлюємо кут
+        return;
+    }
+
+    // Calculate absolute phase by hall sensors
+    // based on difference between current and previous angle
+    // prev cur diff
+    // 0    60  +60
+    // 60   120 +60
+    // 120  180 +60
+    // 180  240 +60
+    // 240  300 +60
+    // 300  0   +60
+    // 0    300 -60
+    // 300  240 -60
+    // 240  180 -60
+    // 180  120 -60
+    // 120  60  -60
+    // 60   0   -60
+    // This is to ensure that the phase is continuous and does not jump
+    // when the motor direction changes
+    if(angle_by_hall_cur == angle_by_hall_prev) return;
+
+    int delta_angle = angle_by_hall_cur - angle_by_hall_prev;
+    if (delta_angle > 180) {
+        delta_angle -= 360; // Adjust for wrap-around
+    } else if (delta_angle < -180) {
+        delta_angle += 360; // Adjust for wrap-around
+    }
+    // Оновлюємо turns_by_hall тільки при переході через межу
+    if (angle_by_hall_prev >= 240 && angle_by_hall_cur <= 60) {
+        turns_by_hall++;
+    } else if (angle_by_hall_prev <= 60 && angle_by_hall_cur >= 240) {
+        turns_by_hall--;
+    }
+
+    angle_by_hall_prev = angle_by_hall_cur; // Update previous angle
+}
 
 // Викликається 12 тисяч разів на секунду
 void  ADC1_COMP_IRQHandler(void)
@@ -277,66 +359,7 @@ void  ADC1_COMP_IRQHandler(void)
     enableFin = enable && !rtY.z_errCode;
     #endif
 
-    // ========================= MOTOR ===========================
-    // Get hall sensors values
-    uint8_t hall_u = !(GPIOC->IDR & (1<<15));
-    uint8_t hall_v = !(GPIOC->IDR & (1<<14));
-    uint8_t hall_w = !(GPIOC->IDR & (1<<13));
-
-    static int angle_by_hall_prev = 0; // Previous angle for hall sensors
-
-    // Calculate new phase angle based on hall sensors to angle_by_hall variable
-
-    // prev
-    // u v h  angle
-    // 0 0 1 ->   0
-    // 0 1 1 ->  60
-    // 0 1 0 -> 120
-    // 1 1 0 -> 180
-    // 1 0 0 -> 240
-    // 1 0 1 -> 300
-
-    if (!hall_u && !hall_v && hall_w) {
-        angle_by_hall_cur = 0;   // 0 degrees
-    } else if (!hall_u && hall_v && hall_w) {
-        angle_by_hall_cur = 60;  // 60 degrees
-    } else if (!hall_u && hall_v && !hall_w) {
-        angle_by_hall_cur = 120; // 120 degrees
-    } else if (hall_u && hall_v && !hall_w) {
-        angle_by_hall_cur = 180; // 180 degrees
-    } else if (hall_u && !hall_v && !hall_w) {
-        angle_by_hall_cur = 240; // 240 degrees
-    } else if (hall_u && !hall_v && hall_w) {
-        angle_by_hall_cur = 300; // 300 degrees
-    }
-
-    // Calculate absolute phase by hall sensors
-    // based on difference between current and previous angle
-    // prev cur diff
-    // 0    60  +60
-    // 60   120 +60
-    // 120  180 +60
-    // 180  240 +60
-    // 240  300 +60
-    // 300  0   +60
-    // 0    300 -60
-    // 300  240 -60
-    // 240  180 -60
-    // 180  120 -60
-    // 120  60  -60
-    // 60   0   -60
-    // This is to ensure that the phase is continuous and does not jump
-    // when the motor direction changes
-    int delta_angle = angle_by_hall_cur - angle_by_hall_prev;
-    if (delta_angle > 180) {
-        delta_angle -= 360; // Adjust for wrap-around
-    } else if (delta_angle < -180) {
-        delta_angle += 360; // Adjust for wrap-around
-    }
-    phase_by_hall_abs += delta_angle;
-
-    angle_by_hall_prev = angle_by_hall_cur; // Update previous angle
-
+    update_hall_angle();
 
 
     #if 0
