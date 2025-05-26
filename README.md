@@ -117,3 +117,15 @@ pyocd flash -t mm32spin05pf --chip -f "100khz" -M under-reset firmware.hex
 
 
 Аллиллуя! На ноге DG начало мигать.
+
+
+## Графіки
+
+```sh
+uv venv
+. .venv/bin/activate
+uv pip install pyserial matplotlib
+./.venv/bin/python plot.py
+```
+
+/dev/tty.usbmodem22302

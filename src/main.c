@@ -12,6 +12,8 @@ uint8_t enable = 0;        // initially motor is disabled for SAFETY
 volatile adc_buf_t adc_buffer;
 volatile int16_t cur_phaB, cur_phaC, cur_DC;
 
+volatile int adc_irq_counter = 0;
+
 volatile int ur = 0;
 volatile int vr = 0;
 volatile int wr = 0;
@@ -22,7 +24,7 @@ volatile int wr = 0;
 // 100 =  9.99V
 // 150 = 10.46V
 
-int sinus_amplitude = 20; // Amplitude of sinusoidal signal for testing
+int sinus_amplitude = 100; // Amplitude of sinusoidal signal for testing
 int speed = 60;     // Швидкість в обертах на хвилину (rpm) для фази
 bool direction = true; // Напрямок обертання: true - вперед, false - назад
 
@@ -43,6 +45,10 @@ const int sinus_table[SINUS_TABLE_SIZE] = {
 
 int vector_index = 0; // Index for sinusoidal vector
 
+// TODO: Hide later
+volatile int angle_by_hall_cur = 0; // Angle, detected by hall sensors for current position (0..359 degrees)
+volatile int phase_by_hall_abs = 0; // Current phase by hall sensors in absolute value (-2^31 .. 2^31-1)
+
 int main(void)
 {
     RCC->AHBENR &= ~RCC_AHBENR_DMA1EN;   // DMA1CLK_DISABLE();
@@ -60,6 +66,7 @@ int main(void)
 
     UART_tx_send("\r\nINFO: Hover board stepper motor test\r\n");
 
+
     for(;;) {
         // LEDR_ON();
         // delay_ms(100);
@@ -73,30 +80,43 @@ int main(void)
         // delay_ms(100);
         // LEDY_OFF();
         delay_ms(500);
+
+        uint8_t hall_u = !(GPIOC->IDR & (1<<15));
+        uint8_t hall_v = !(GPIOC->IDR & (1<<14));
+        uint8_t hall_w = !(GPIOC->IDR & (1<<13));
+
         tfp_printf(
-            "millis:%d"
-            "ADC"
+            // " ADC:%d"
             " cur_phaB:%d"
             " cur_phaC:%d"
             " cur_DC:%d"
             " batt1:%d"
-            " temp:%d"
-            " enable:%s"
+            // " temp:%d"
+            " en:%s"
             " speed:%d"
-            " direction:%d"
-            " sinus_amplitude:%d"
+            " dir:%d"
+            " sinus_U:%d"
+            " angle_hall:%d"
+            " phase_hall:%d"
+            " u:%c v:%c w:%c"
             "\r\n",
-            millis,
+            // adc_irq_counter,
             cur_phaB,
             cur_phaC,
             cur_DC,
-            adc_buffer.batt1,
-            adc_buffer.temp,
-            enable ? "+" : "-",
+            adc_buffer.batt1 * 1000 / 40, // Convert to volts (assuming 40 is the divisor for milivoltage)
+            // adc_buffer.temp,
+            enable ? "1" : "0",
             speed,
             direction,
-            sinus_amplitude
+            sinus_amplitude,
+            angle_by_hall_cur,
+            phase_by_hall_abs,
+            hall_u ? '1' : '0',
+            hall_v ? '1' : '0',
+            hall_w ? '1' : '0'
         );
+        adc_irq_counter = 0; // Reset ADC IRQ counter
     }
 }
 
@@ -110,6 +130,7 @@ void uart_data_cb(char v)
         }
     } else if(v == '2') {
         speed = speed * 110 / 100; // Increase speed by 10%
+        speed++;
     } else if(v == '3') {
         direction = !direction;  // Toggle direction
         tfp_printf("Direction changed to: %s\r\n", direction ? "forward" : "backward");
@@ -119,7 +140,7 @@ void uart_data_cb(char v)
         tfp_printf("Sinus amplitude decreased to: %d\r\n", sinus_amplitude);
     } else if(v == '5') {
         sinus_amplitude += 5;  // Increase amplitude
-        if (sinus_amplitude > 200) sinus_amplitude = 200;
+        if (sinus_amplitude > 500) sinus_amplitude = 500;
         tfp_printf("Sinus amplitude increased to: %d\r\n", sinus_amplitude);
     } else if(v == '6') {
         enable = 1;  // Enable motor
@@ -134,7 +155,6 @@ void uart_data_cb(char v)
     }
 }
 
-
 // Якшо я нічого не плутаю, то значення повинно бути в діапазоні:
 // (pwm_margin) ... (PWM_RES - pwm_margin)
 // Середина = PWM_RES / 2
@@ -142,13 +162,15 @@ void uart_data_cb(char v)
 // This margin allows to have a window in the PWM signal
 static int16_t pwm_margin = 0; // Для FOC контролера це 300, для інших контролерів це 0
 
-
+// Викликається 12 тисяч разів на секунду
 void  ADC1_COMP_IRQHandler(void)
 {
     //int16_t cur_phaB, cur_phaC, cur_DC;
 
     ADC1->SR |= ADC_SR_ADIF;
     //GPIOB->BSRR = GPIO_BRR_BR12;  // test
+
+    adc_irq_counter++;
 
     adc_buffer.rrB = (ADC1->ADDR0 - ADC1->ADDR1) & 0xFFF;
     adc_buffer.rrC = (ADC1->ADDR4 - ADC1->ADDR5) & 0xFFF;
@@ -261,6 +283,62 @@ void  ADC1_COMP_IRQHandler(void)
     uint8_t hall_v = !(GPIOC->IDR & (1<<14));
     uint8_t hall_w = !(GPIOC->IDR & (1<<13));
 
+    static int angle_by_hall_prev = 0; // Previous angle for hall sensors
+
+    // Calculate new phase angle based on hall sensors to angle_by_hall variable
+
+    // prev
+    // u v h  angle
+    // 0 0 1 ->   0
+    // 0 1 1 ->  60
+    // 0 1 0 -> 120
+    // 1 1 0 -> 180
+    // 1 0 0 -> 240
+    // 1 0 1 -> 300
+
+    if (!hall_u && !hall_v && hall_w) {
+        angle_by_hall_cur = 0;   // 0 degrees
+    } else if (!hall_u && hall_v && hall_w) {
+        angle_by_hall_cur = 60;  // 60 degrees
+    } else if (!hall_u && hall_v && !hall_w) {
+        angle_by_hall_cur = 120; // 120 degrees
+    } else if (hall_u && hall_v && !hall_w) {
+        angle_by_hall_cur = 180; // 180 degrees
+    } else if (hall_u && !hall_v && !hall_w) {
+        angle_by_hall_cur = 240; // 240 degrees
+    } else if (hall_u && !hall_v && hall_w) {
+        angle_by_hall_cur = 300; // 300 degrees
+    }
+
+    // Calculate absolute phase by hall sensors
+    // based on difference between current and previous angle
+    // prev cur diff
+    // 0    60  +60
+    // 60   120 +60
+    // 120  180 +60
+    // 180  240 +60
+    // 240  300 +60
+    // 300  0   +60
+    // 0    300 -60
+    // 300  240 -60
+    // 240  180 -60
+    // 180  120 -60
+    // 120  60  -60
+    // 60   0   -60
+    // This is to ensure that the phase is continuous and does not jump
+    // when the motor direction changes
+    int delta_angle = angle_by_hall_cur - angle_by_hall_prev;
+    if (delta_angle > 180) {
+        delta_angle -= 360; // Adjust for wrap-around
+    } else if (delta_angle < -180) {
+        delta_angle += 360; // Adjust for wrap-around
+    }
+    phase_by_hall_abs += delta_angle;
+
+    angle_by_hall_prev = angle_by_hall_cur; // Update previous angle
+
+
+
     #if 0
     // Set motor inputs here
     rtU.b_motEna      = enableFin;
@@ -281,10 +359,6 @@ void  ADC1_COMP_IRQHandler(void)
     vr  = rtY.DC_phaB;
     wr  = rtY.DC_phaC;
     #endif
-
-
-
-
 
 
 // --- Phase calculation based on millis, with phase continuity on speed/direction change ---
