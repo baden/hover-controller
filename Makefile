@@ -21,16 +21,20 @@ OBJS = $(preOBJ:$(SRC_DIR)/%=%) startup_mm32spin06xx.o system_mm32spin06xx_s.o
 
 INC  = ./lib/CMSIS
 
-CFLAGS += -mcpu=cortex-m0 
+CFLAGS += -mcpu=cortex-m0
 CFLAGS += -mlittle-endian
 CFLAGS += -mthumb
 CFLAGS += -g
+CFLAGS += -O0
+CFLAGS +=-ffunction-sections -fdata-sections
 
 LDFLAGS += -mcpu=cortex-m0
 LDFLAGS += -mlittle-endian
 LDFLAGS += -mthumb
 LDFLAGS += -T $(LD_SCRIPT)
 LDFLAGS += -Wl,--gc-section
+# remove debugging symbols
+# LDFLAGS += -Wl,--strip-debug
 
 %.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -I $(INC)
@@ -41,15 +45,13 @@ LDFLAGS += -Wl,--gc-section
 %.o: $(DEV_PATH)/%.c
 	$(CC) $(CFLAGS) -c $< -I $(INC)
 
-firmware.elf: $(OBJS) 
-	$(LD) $(LDFLAGS) $(OBJ) -o $@ $(OBJS)
+firmware.elf: $(OBJS)
+	$(LD) $(LDFLAGS) $(OBJ) -o $@ $(OBJS) -Wl,--print-memory-usage -Wl,-Map=firmware.map
 
 firmware.hex: firmware.elf
 	$(OC) -Oihex firmware.elf firmware.hex
 
 all: firmware.hex
-	@echo "   Size:"	
-	$(OS) ./firmware.elf
 
 clean :
 	-rm *.o *.elf *.hex *.map
