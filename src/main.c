@@ -181,7 +181,7 @@ void control_update(void) {
 
     // 2. Обчислення похибки
     int32_t phase_error = expect_phase_abs - rotor_phase_est;
-    if(ABS(phase_error) <= _A(120)) phase_error = 0;
+    if(ABS(phase_error) <= _A(90)) phase_error = 0;
 
     // 3. Пропорційна складова
     int32_t phase_force = KP * phase_error;
@@ -206,7 +206,7 @@ void control_update(void) {
     // 7. Обчислення амплітуди
     int32_t abs_error = phase_error > 0 ? phase_error : -phase_error;
     int32_t a = abs_error / PHASE_SCALE;  // перехід в градуси
-    if (a > 200) a = 200;
+    if (a > MAX_AMPLITUDE) a = MAX_AMPLITUDE;
     amplitude = (int16_t)a;
 
     // 8. Виявлення застряглого ротора
