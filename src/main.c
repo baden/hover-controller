@@ -93,7 +93,6 @@ int16_t amplitude = 0;           // Амплітуда напруги на фа�
 
 // Внутрішній стан
 static int32_t rotor_phase_est = 0;
-static int32_t phase_integral = 0;
 static int32_t last_rotor_phase_est = 0;
 static uint16_t stall_counter = 0;
 bool motor_stalled = false;
@@ -174,6 +173,8 @@ static void __inline__ update_hall_angle(void)
     angle_by_hall_prev = angle_by_hall_cur; // Update previous angle
 }
 
+static int32_t phase_integral = 0;
+
 void control_update(void) {
 
     // 1. Згладжування положення ротора
@@ -181,17 +182,36 @@ void control_update(void) {
 
     // 2. Обчислення похибки
     int32_t phase_error = expect_phase_abs - rotor_phase_est;
-    if(ABS(phase_error) <= _A(90)) phase_error = 0;
+    // Обмежуємо похибку в межах ±180°
+    if (phase_error > MAX_PHASE_ERROR) phase_error = MAX_PHASE_ERROR;
+    if (phase_error < -MAX_PHASE_ERROR) phase_error = -MAX_PHASE_ERROR;
 
-    // 3. Пропорційна складова
-    int32_t phase_force = KP * phase_error;
+    // --- Вибір коефіцієнтів PID залежно від зони ---
+    int32_t kp = KP;
+    int32_t ki = KI;
 
-    // 4. Інтегральна складова з анти-насиченням
-    phase_integral += KI * phase_error;
+    // TODO: Замість повного обнулення можна ослаблювати дію PID:
+    if(ABS(phase_error) < FULL_STOP_THRESHOLD) {
+        // Якщо похибка менше порогу зупинки, то зупиняємося
+        phase_error = 0;
+        kp = 0; // Повністю зупиняємося
+        ki = 0; // Скидаємо інтегральну складову
+        phase_integral = 0;
+    } else if(ABS(phase_error) <= DEADZONE_THRESHOLD) {
+        // phase_error = 0;
+        kp = KP_DEADZONE;        // Use deadzone PID coefficients
+        ki = KI_DEADZONE;    // Use deadzone integral coefficient
+    }
+
+    // --- PID-регулятор ---
+    phase_integral += (ki * phase_error) >> PID_SHIFT;
     if (phase_integral > INTEGRATOR_LIMIT) phase_integral = INTEGRATOR_LIMIT;
     if (phase_integral < -INTEGRATOR_LIMIT) phase_integral = -INTEGRATOR_LIMIT;
 
-    phase_force += phase_integral;
+    int32_t phase_force = ((kp * phase_error) >> PID_SHIFT) + phase_integral;
+
+
+    // phase_force += phase_integral;
 
     // 5. Обмеження максимальної швидкості
     int32_t phase_step = phase_force;
@@ -202,10 +222,11 @@ void control_update(void) {
 
     // 6. Оновлення motor_phase_abs
     motor_phase_abs = rotor_phase_est + phase_step;
+    // motor_phase_abs += phase_step;
 
     // 7. Обчислення амплітуди
-    int32_t abs_error = phase_error > 0 ? phase_error : -phase_error;
-    int32_t a = abs_error / PHASE_SCALE;  // перехід в градуси
+    int32_t abs_error = ABS(phase_error);
+    int32_t a = (abs_error * 2) / PHASE_SCALE;  // перехід в градуси
     if (a > MAX_AMPLITUDE) a = MAX_AMPLITUDE;
     amplitude = (int16_t)a;
 
@@ -327,7 +348,7 @@ int main(void)
                     // " turns_h:%d"
                     // " angle_h:%d"
                     " Arot:%d(%d)"
-                    " Amot:%d"
+                    " Amot:%d(+%d)"
                     " Aexp:%d"
                     " Stall:%s"
                     // " u:%c v:%c w:%c"
@@ -346,7 +367,7 @@ int main(void)
                     // turns_by_hall,
                     // angle_by_hall_cur,
                     , _toA(rotor_phase_abs), _toA(rotor_phase_est)
-                    , _toA(motor_phase_abs)
+                    , _toA(motor_phase_abs), _toA(motor_phase_abs - rotor_phase_est)
                     , _toA(expect_phase_abs)
                     , motor_stalled ? "yes" : "no"
                     // hall_u ? '1' : '0', hall_v ? '1' : '0', hall_w ? '1' : '0'
