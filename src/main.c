@@ -38,8 +38,8 @@ volatile int wr = 0;
 // 150 = 10.46V
 // int sinus_amplitude = 100; // Amplitude of sinusoidal signal for testing
 
-volatile int speed = 60;   // Швидкість в обертах на хвилину (rpm) для фази
-#define direction (speed >= 0) // Напрямок обертання: true - вперед, false - назад
+// volatile int speed = 60;   // Швидкість в обертах на хвилину (rpm) для фази
+// #define direction (speed >= 0) // Напрямок обертання: true - вперед, false - назад
 // bool direction = true; // Напрямок обертання: true - вперед, false - назад
 
 volatile bool enablePID = false; // Enable motor PID control
@@ -67,7 +67,8 @@ volatile int angle_by_hall_cur = 0; // Angle, detected by hall sensors for curre
 volatile int turns_by_hall = 0; // Number of turns detected by hall sensors (can be negative)
 volatile int sync_phase = _A(90); // Synchronization phase for hall sensors and motor (120 for sine. I hope will be 0 for cosine)
 // Абсолютна фаза. TODO: Може краще таки зробити змінну.
-#define rotor_phase_abs (turns_by_hall * _A(360) + angle_by_hall_cur - sync_phase)
+// #define rotor_phase_abs (turns_by_hall * _A(360) + angle_by_hall_cur - sync_phase)
+volatile int rotor_phase_abs = 0;
 // rotor_phase_abs calculates as turns_by_hall * 360 + angle_by_hall_cur
 // volatile int rotor_phase_abs = 0; // Current phase by hall sensors in absolute value (-2^31 .. 2^31-1)
 
@@ -171,33 +172,51 @@ static void __inline__ update_hall_angle(void)
     }
 
     angle_by_hall_prev = angle_by_hall_cur; // Update previous angle
+
+    rotor_phase_abs = (turns_by_hall * _A(360) + angle_by_hall_cur - sync_phase);
+    // TODO: Може тут зробити фільтрацію значення?
+    // А можливо навпаки, прибрати звідси обчислення.
+
+    // 1. Згладжування положення ротора
+    // TODO: Можливо фільтрацію требе перенести в update_hall_angle?
+    //rotor_phase_est += (rotor_phase_abs - rotor_phase_est) >> FILTER_SHIFT;
+    rotor_phase_est = rotor_phase_abs;
 }
 
 static int32_t phase_integral = 0;
 
-void control_update(void) {
-
-    // 1. Згладжування положення ротора
-    rotor_phase_est += (rotor_phase_abs - rotor_phase_est) >> FILTER_SHIFT;
-
+void control_update(void)
+{
     // 2. Обчислення похибки
     int32_t phase_error = expect_phase_abs - rotor_phase_est;
+
+    // 3. Визначення напрямку
+    int8_t direction = (phase_error >= 0) ? 1 : -1;
+
     // Обмежуємо похибку в межах ±180°
+    // TODO: Вже не так критично. Можливо взагалі не потрібно?
     if (phase_error > MAX_PHASE_ERROR) phase_error = MAX_PHASE_ERROR;
     if (phase_error < -MAX_PHASE_ERROR) phase_error = -MAX_PHASE_ERROR;
+
+    // 4. Завжди тримаємо фазу струму на 90° вперед від ротора у потрібному напрямку
+    motor_phase_abs = rotor_phase_est + (direction * PHASE_ADVANCE);
+
+    // 5. PID по позиційній похибці керує тільки амплітудою
 
     // --- Вибір коефіцієнтів PID залежно від зони ---
     int32_t kp = KP;
     int32_t ki = KI;
 
     // TODO: Замість повного обнулення можна ослаблювати дію PID:
-    if(ABS(phase_error) < FULL_STOP_THRESHOLD) {
+    int32_t abs_phase_error = ABS(phase_error);
+
+    if(abs_phase_error < FULL_STOP_THRESHOLD) {
         // Якщо похибка менше порогу зупинки, то зупиняємося
         phase_error = 0;
         kp = 0; // Повністю зупиняємося
         ki = 0; // Скидаємо інтегральну складову
         phase_integral = 0;
-    } else if(ABS(phase_error) <= DEADZONE_THRESHOLD) {
+    } else if(abs_phase_error <= DEADZONE_THRESHOLD) {
         // phase_error = 0;
         kp = KP_DEADZONE;        // Use deadzone PID coefficients
         ki = KI_DEADZONE;    // Use deadzone integral coefficient
@@ -208,34 +227,43 @@ void control_update(void) {
     if (phase_integral > INTEGRATOR_LIMIT) phase_integral = INTEGRATOR_LIMIT;
     if (phase_integral < -INTEGRATOR_LIMIT) phase_integral = -INTEGRATOR_LIMIT;
 
-    int32_t phase_force = ((kp * phase_error) >> PID_SHIFT) + phase_integral;
+    int32_t pid_output = ((kp * phase_error) >> PID_SHIFT) + phase_integral;
 
+    // int32_t phase_force = ((kp * phase_error) >> PID_SHIFT) + phase_integral;
+    // int32_t amplitude_force = ((KP * phase_error) >> PID_SHIFT) + phase_integral;
+    // if(amplitude_force < 0) amplitude_force = 0; // Не дозволяємо негативну амплітуду
+
+    // 6. Встановлення амплітуди на основі PID
+    int32_t a = ABS(pid_output) / PHASE_SCALE;
+    if (a > MAX_AMPLITUDE) a = MAX_AMPLITUDE;
+    // if (a < MIN_AMPLITUDE) a = 0;
+    amplitude = (int16_t)a;
 
     // phase_force += phase_integral;
 
     // 5. Обмеження максимальної швидкості
-    int32_t phase_step = phase_force;
-    if (phase_step > MAX_PHASE_STEP_PER_CYCLE) phase_step = MAX_PHASE_STEP_PER_CYCLE;
-    if (phase_step < -MAX_PHASE_STEP_PER_CYCLE) phase_step = -MAX_PHASE_STEP_PER_CYCLE;
+    // int32_t phase_step = phase_force;
+    // if (phase_step > MAX_PHASE_STEP_PER_CYCLE) phase_step = MAX_PHASE_STEP_PER_CYCLE;
+    // if (phase_step < -MAX_PHASE_STEP_PER_CYCLE) phase_step = -MAX_PHASE_STEP_PER_CYCLE;
 
     // tfp_printf("_s:%d\r\n", phase_step);
 
     // 6. Оновлення motor_phase_abs
-    motor_phase_abs = rotor_phase_est + phase_step;
+    // motor_phase_abs = rotor_phase_est + phase_step;
     // motor_phase_abs += phase_step;
 
     // 7. Обчислення амплітуди
-    int32_t abs_error = ABS(phase_error);
-    int32_t a = (abs_error * 2) / PHASE_SCALE;  // перехід в градуси
-    if (a > MAX_AMPLITUDE) a = MAX_AMPLITUDE;
-    amplitude = (int16_t)a;
+    // int32_t abs_error = ABS(phase_error);
+    // int32_t a = (amplitude_force * 2) / PHASE_SCALE;
+    // if (a > MAX_AMPLITUDE) a = MAX_AMPLITUDE;
+    // amplitude = (int16_t)a;
 
     // 8. Виявлення застряглого ротора
     int32_t phase_movement = rotor_phase_est - last_rotor_phase_est;
     if (phase_movement < 0) phase_movement = -phase_movement;
 
     if (phase_movement < STALL_PHASE_MOVEMENT_THRESHOLD &&
-        abs_error > STALL_PHASE_ERROR_THRESHOLD) {
+        abs_phase_error > STALL_PHASE_ERROR_THRESHOLD) {
         stall_counter++;
         if (stall_counter > STALL_COUNTER_LIMIT) {
             motor_stalled = true;
@@ -320,7 +348,7 @@ int main(void)
             __enable_irq();
             // NVIC_EnableIRQ(ADC1_IRQn);   // Альтернатива
 
-            update_hall_angle();
+            // update_hall_angle();
             if(enablePID) control_update();
             apply();
 
@@ -348,7 +376,7 @@ int main(void)
                     // " turns_h:%d"
                     // " angle_h:%d"
                     " Arot:%d(%d)"
-                    " Amot:%d(+%d)"
+                    " Amot:%d(%s%d)"
                     " Aexp:%d"
                     " Stall:%s"
                     // " u:%c v:%c w:%c"
@@ -367,7 +395,7 @@ int main(void)
                     // turns_by_hall,
                     // angle_by_hall_cur,
                     , _toA(rotor_phase_abs), _toA(rotor_phase_est)
-                    , _toA(motor_phase_abs), _toA(motor_phase_abs - rotor_phase_est)
+                    , _toA(motor_phase_abs), (motor_phase_abs - rotor_phase_est) > 0 ? "+" : "-",  ABS(_toA(motor_phase_abs - rotor_phase_est))
                     , _toA(expect_phase_abs)
                     , motor_stalled ? "yes" : "no"
                     // hall_u ? '1' : '0', hall_v ? '1' : '0', hall_w ? '1' : '0'
@@ -401,13 +429,13 @@ void uart_data_cb(char v)
     } else if(v == 'w') {
         expect_phase_abs += _A(90); // Increase phase to set by 10 degrees
     } else if(v == 'a') {
-        speed -= 5; // Decrease speed by 5 rpm
-        if (speed < 0) speed = 0;
-        tfp_printf("Speed decreased to: %d\r\n", speed);
+        // speed -= 5; // Decrease speed by 5 rpm
+        // if (speed < 0) speed = 0;
+        // tfp_printf("Speed decreased to: %d\r\n", speed);
     } else if(v == 's') {
-        speed += 5; // Increase speed by 5 rpm
-        if (speed > 300) speed = 300; // Limit max speed to 300 rpm
-        tfp_printf("Speed increased to: %d\r\n", speed);
+        // speed += 5; // Increase speed by 5 rpm
+        // if (speed > 300) speed = 300; // Limit max speed to 300 rpm
+        // tfp_printf("Speed increased to: %d\r\n", speed);
     } else if(v == '3') {
         // direction = !direction;  // Toggle direction
         // tfp_printf("Direction changed to: %s\r\n", direction ? "forward" : "backward");
@@ -540,6 +568,8 @@ void  ADC1_COMP_IRQHandler(void)
         tick1ms++;
     }
 
+    update_hall_angle();
+
     return;
 
     // Create square wave for buzzer
@@ -584,7 +614,6 @@ void  ADC1_COMP_IRQHandler(void)
     enableFin = enable && !rtY.z_errCode;
     #endif
 
-    update_hall_angle();
 
 
     #if 0
@@ -636,39 +665,7 @@ void  ADC1_COMP_IRQHandler(void)
     wr = sinus_table[(vector_index + 2 * SINUS_TABLE_SIZE / 3) % SINUS_TABLE_SIZE] * sinus_amplitude / 100;
 #endif
 
-    if(enablePID) {
-        // Намагаємося синхронізувати фазу phase_to_set_abs з фазою, визначеною датчиками Холла (phase_by_hall_abs)
-        // Не намагатись зробити точніше ніж 60 градусів
-        // Значення фази абсолютне, тому не треба враховувати перехід через 0 градусів
-        // TODO: Задіяти PID контролер для синхронізації фаз
-        int phase_error = rotor_phase_abs - expect_phase_abs; // Calculate phase error
-        if(ABS(phase_error) > 60) {
-            // Тимчасово спрощена процедура синхронізації
-            if(phase_error < 0) {
-                // motor_phase_abs += 10; // Increase motor phase by 10 degrees
-                speed = ABS(phase_error) / 60; //1;
-                if(speed > 10) speed = 10; // Limit speed to 100 rpm
-            } else {
-                // motor_phase_abs -= 10; // Decrease motor phase by 10 degrees
-                speed = -ABS(phase_error) / 60; //-1;
-                if(speed < -10) speed = -10; // Limit speed to -100 rpm
-            }
-        } else {
-            // Якщо фаза близька до бажаної, то зупиняємося
-            speed = 0; // Stop the motor
-        }
-
-        // Розрахуємо нове значення motor_phase_abs в залежності від speed
-        // TODO: Треба обмежити значення швидкості
-        // TODO: Треба обмежити значення прискорення
-        static int debounce = 0;
-        if(debounce < 30) { // 400 ітерацій в секунду
-            debounce++;
-        } else {
-            debounce = 0;
-            motor_phase_abs += speed;
-        }
-    }
+    #if 0
 
     // Фази для трифазного двигуна (A, B, C):
     unsigned r_index = motor_phase * SINUS_TABLE_SIZE / 360; // Convert motor phase to index in sinus_table
@@ -685,6 +682,7 @@ void  ADC1_COMP_IRQHandler(void)
     TIM1->CCR3  = (uint16_t)CLAMP(wr + PWM_RES / 2, pwm_margin, PWM_RES-pwm_margin);
 
     // =================================================================
+    #endif
 
     // Indicate task complete
     #if 0
