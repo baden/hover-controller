@@ -70,16 +70,20 @@ volatile int motor_phase_abs = 0; // Current motor phase absolute in degrees (-2
 // Фаза, яку ми хочемо встановити в контролері
 volatile int phase_to_set_abs = 0; // Phase to set in controller (0..359 degrees)
 
+
+volatile uint16_t adc_v0, adc_v1, adc_v4, adc_v5, adc_v7;
+volatile uint16_t adc_v2, adc_v6;
+
 int main(void)
 {
     RCC->AHBENR &= ~RCC_AHBENR_DMA1EN;   // DMA1CLK_DISABLE();
     delay_Init();
     GPIO_Init();
-    UART_Init();
 
     TIM1_Init();
     ADC1_Init();
 
+    UART_Init();
     OFF_PORT->BSRR = 1<<OFF_PIN;   // Activate Latch
 
     // Start ADC conversion
@@ -94,13 +98,13 @@ int main(void)
         LEDG_ON();
         // delay_ms(100);
         // LEDY_ON();
-        delay_ms(500);
+        delay_ms(50);
         // LEDR_OFF();
         // delay_ms(100);
         LEDG_OFF();
         // delay_ms(100);
         // LEDY_OFF();
-        delay_ms(500);
+        delay_ms(50);
 
         uint8_t hall_u = !(GPIOC->IDR & (1<<15));
         uint8_t hall_v = !(GPIOC->IDR & (1<<14));
@@ -113,12 +117,13 @@ int main(void)
             // " cur_DC:%d"
             // " batt1:%d"
             // " temp:%d"
+            " A0:%d A1:%d A4:%d A5:%d A7:%d V2:%d V6:%d"
             " en:%s"
-            " speed:%d"
-            " dir:%d"
-            " sinus_U:%d"
-            " turns_by_hall:%d"
-            " angle_h:%d"
+            // " speed:%d"
+            // " dir:%d"
+            " U:%d"
+            // " turns_h:%d"
+            // " angle_h:%d"
             " phase_h:%d"
             " phase_m:%d"
             " phase_s:%d"
@@ -130,12 +135,13 @@ int main(void)
             // cur_DC,
             // adc_buffer.batt1 * 1000 / 40, // Convert to volts (assuming 40 is the divisor for milivoltage)
             // adc_buffer.temp,
+            adc_v0, adc_v1, adc_v4, adc_v5, adc_v7,   adc_v2, adc_v6,
             enable ? "1" : "0",
-            speed,
-            direction,
+            // speed,
+            // direction,
             sinus_amplitude,
-            turns_by_hall,
-            angle_by_hall_cur,
+            // turns_by_hall,
+            // angle_by_hall_cur,
             phase_by_hall_abs,
             motor_phase_abs,
             phase_to_set_abs,
@@ -292,6 +298,7 @@ static void __inline__ update_hall_angle(void)
     angle_by_hall_prev = angle_by_hall_cur; // Update previous angle
 }
 
+
 // Викликається 12 тисяч разів на секунду
 void  ADC1_COMP_IRQHandler(void)
 {
@@ -302,6 +309,16 @@ void  ADC1_COMP_IRQHandler(void)
 
     adc_irq_counter++;
 
+    adc_v0 = ADC1->ADDR0;
+    adc_v1 = ADC1->ADDR1;
+    adc_v4 = ADC1->ADDR4;
+    adc_v5 = ADC1->ADDR5;
+    adc_v7 = ADC1->ADDR7;
+
+    adc_v2 = ADC1->ADDR2; // ADC1_CH2(PA2) - unused
+    adc_v6 = ADC1->ADDR6; // ADC1_CH6(PA6) - unused
+
+    #if 0
     adc_buffer.rrB = (ADC1->ADDR0 - ADC1->ADDR1) & 0xFFF;       // ADC1_CH0(PA0) - ADC1_CH1(PA1) phase b
     adc_buffer.rrC = (ADC1->ADDR4 - ADC1->ADDR5) & 0xFFF;       // ADC1_CH4(PA4) - ADC1_CH5(PA5) phase c
     adc_buffer.dcr = ADC1->ADDR7 & 0xFFF;                       // ADC1_CH7(PA7) DC Link current
@@ -333,7 +350,7 @@ void  ADC1_COMP_IRQHandler(void)
         }
     }
     // offset calibrate end
-
+    #endif
 
     // Filter battery voltage at a slower sampling rate
     // 680 = 17.0V
@@ -347,6 +364,7 @@ void  ADC1_COMP_IRQHandler(void)
     }
     #endif
 
+    #if 0
     // Get motor currents
     cur_phaB = (int16_t)(adc_buffer.rrB - offsetrrB);
     cur_phaC = (int16_t)(adc_buffer.rrC - offsetrrC);
@@ -354,7 +372,9 @@ void  ADC1_COMP_IRQHandler(void)
     //if (cur_phaB>max_cur_phaB) max_cur_phaB = cur_phaB;
     //if (cur_phaC>max_cur_phaC) max_cur_phaC = cur_phaC;
     //if (cur_DC>max_cur_DC) max_cur_DC = cur_DC;
-
+    #else
+    cur_DC = 0;
+    #endif
 
     // Disable PWM when current limit is reached (current chopping)
     // This is the Level 2 of current protection. The Level 1 should kick in first given by I_MOT_MAX

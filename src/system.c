@@ -151,6 +151,7 @@ void ADC1_Init(void)
 
     ADC1->CHSR = ADC_CHSR_CH0 | ADC_CHSR_CH1   // phase b
                 | ADC_CHSR_CH4 | ADC_CHSR_CH5   //phase c
+                | ADC_CHSR_CH6 | ADC_CHSR_CH2   // ?
                 | ADC_CHSR_CH7                  // I common
 	            | ADC_CHSR_CH9                  // voltage (PB1/ADC1_CH9)
                 | ADC_CHSR_CHT;                 // temperature
