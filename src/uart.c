@@ -37,7 +37,7 @@ void UART_Init(void)
     init_printf(&putc, putc);  // Initialize tinyprintf with UART putc function
 }
 
-#define UART_TX_BUFFER_SIZE 128
+#define UART_TX_BUFFER_SIZE 512
 
 char uart_tx_buffer[UART_TX_BUFFER_SIZE];
 unsigned uart_tx_buffer_index = 0;  // index for the next byte to send
