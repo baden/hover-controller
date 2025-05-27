@@ -14,16 +14,18 @@
 #define STALL_PHASE_ERROR_THRESHOLD         _A(60)
 #define STALL_COUNTER_LIMIT                 1000
 #define INTEGRATOR_LIMIT                    _A(500)
-#define MAX_AMPLITUDE                       300    // Максимальна амплітуда синусоїди
+#define MAX_AMPLITUDE                       400    // Максимальна амплітуда синусоїди
 #define PHASE_ADVANCE                      _A(90)  // Фаза струму на 90 градусів вперед від ротора
 
-#define MAX_PHASE_ERROR                    _A(180) // Максимальна похибка фази для PID контролера
+// #define MAX_PHASE_ERROR                    _A(180) // Максимальна похибка фази для PID контролера
+#define MAX_PHASE_ERROR                    _A(360) // Максимальна похибка фази для PID контролера
 
-// PID коефіцієнти (підібрати експериментально)
-#define KP                                  (256 * 4)
-#define KI                                  (256 * 0.02)
 #define PID_SHIFT                           8
 
+// PID коефіцієнти (підібрати експериментально)
+#define KP                                  (2 * (1 << PID_SHIFT)) // 0.05 * 256 = 12.8
+#define KI                                  (0.1 * (1 << PID_SHIFT)) // 0.02 * 256 = 5.12
+
 // Значення PID для мертвої зони
-#define KP_DEADZONE                        (256 * 1)
-#define KI_DEADZONE                        (256 * 0.005)
+#define KP_DEADZONE                        (KP / 16)
+#define KI_DEADZONE                        (KI / 16)

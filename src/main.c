@@ -223,18 +223,21 @@ void control_update(void)
     }
 
     // --- PID-регулятор ---
-    phase_integral += (ki * phase_error) >> PID_SHIFT;
+    // --- Масштабована похибка в градусах ---
+    int32_t phase_error_deg = phase_error / PHASE_SCALE;  // тепер в градусах
+
+    phase_integral += (ki * phase_error_deg) >> PID_SHIFT;
     if (phase_integral > INTEGRATOR_LIMIT) phase_integral = INTEGRATOR_LIMIT;
     if (phase_integral < -INTEGRATOR_LIMIT) phase_integral = -INTEGRATOR_LIMIT;
 
-    int32_t pid_output = ((kp * phase_error) >> PID_SHIFT) + phase_integral;
+    int32_t pid_output = ((kp * phase_error_deg) >> PID_SHIFT) + phase_integral;
 
     // int32_t phase_force = ((kp * phase_error) >> PID_SHIFT) + phase_integral;
     // int32_t amplitude_force = ((KP * phase_error) >> PID_SHIFT) + phase_integral;
     // if(amplitude_force < 0) amplitude_force = 0; // Не дозволяємо негативну амплітуду
 
     // 6. Встановлення амплітуди на основі PID
-    int32_t a = ABS(pid_output) / PHASE_SCALE;
+    int32_t a = ABS(pid_output);
     if (a > MAX_AMPLITUDE) a = MAX_AMPLITUDE;
     // if (a < MIN_AMPLITUDE) a = 0;
     amplitude = (int16_t)a;
@@ -429,13 +432,25 @@ void uart_data_cb(char v)
     } else if(v == 'w') {
         expect_phase_abs += _A(90); // Increase phase to set by 10 degrees
     } else if(v == 'a') {
+        expect_phase_abs -= _A(360);
         // speed -= 5; // Decrease speed by 5 rpm
         // if (speed < 0) speed = 0;
         // tfp_printf("Speed decreased to: %d\r\n", speed);
     } else if(v == 's') {
+        expect_phase_abs += _A(360);
         // speed += 5; // Increase speed by 5 rpm
         // if (speed > 300) speed = 300; // Limit max speed to 300 rpm
         // tfp_printf("Speed increased to: %d\r\n", speed);
+    } else if(v == 'z') {
+        expect_phase_abs -= _A(360)*15;
+    } else if(v == 'x') {
+        expect_phase_abs += _A(360)*15;
+    } else if(v == 'c') {
+        // expect_phase_abs = 0; // Reset phase to set
+        // tfp_printf("Phase reset to 0\r\n");
+    } else if(v == 'd') {
+        // expect_phase_abs = rotor_phase_abs; // Set phase to current rotor phase
+        // tfp_printf("Phase set to current rotor phase: %d\r\n", _toA(rotor_phase_abs));
     } else if(v == '3') {
         // direction = !direction;  // Toggle direction
         // tfp_printf("Direction changed to: %s\r\n", direction ? "forward" : "backward");
