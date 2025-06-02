@@ -42,7 +42,7 @@ volatile int wr = 0;
 // #define direction (speed >= 0) // Напрямок обертання: true - вперед, false - назад
 // bool direction = true; // Напрямок обертання: true - вперед, false - назад
 
-volatile bool enablePID = false; // Enable motor PID control
+volatile bool enablePID = true; // Enable motor PID control
 
 #define SINUS_TABLE_SIZE  128 // Size of sinusoidal table (4x more)
 
@@ -312,6 +312,7 @@ void apply()
 int main(void)
 {
     static unsigned c1 = 0;
+    static unsigned button_power_state = 0;
 
     RCC->AHBENR &= ~RCC_AHBENR_DMA1EN;   // DMA1CLK_DISABLE();
     delay_Init();
@@ -358,6 +359,15 @@ int main(void)
             // TODO: PID control logic here
             c1++;
             if(c1 >= 100) {
+                // Button power: PB9
+                unsigned new_button_power_state = (GPIOB->IDR & (1<<9)) ? 0 : 1; // Read button state (active low)
+                if (new_button_power_state != button_power_state) {
+                    button_power_state = new_button_power_state;
+                    if (!button_power_state) {
+                        // Button pressed
+                        enable = !enable;
+                    }
+                }
                 c1 = 0;
 
                 uint8_t hall_u = !(GPIOC->IDR & (1<<15));

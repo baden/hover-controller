@@ -226,7 +226,7 @@ LOAD /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-
                 0x0000000008000000                g_pfnVectors
                 0x00000000080000c0                . = ALIGN (0x4)
 
-.text           0x00000000080000c0     0x25f0
+.text           0x00000000080000c0     0x262c
                 0x00000000080000c0                . = ALIGN (0x4)
  *(.text)
  .text          0x00000000080000c0       0x48 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
@@ -260,355 +260,358 @@ LOAD /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-
                 0x0000000008000874                control_update
  .text.apply    0x0000000008000a20      0x1f8 main.o
                 0x0000000008000a20                apply
- .text.main     0x0000000008000c18      0x1dc main.o
+ .text.main     0x0000000008000c18      0x218 main.o
                 0x0000000008000c18                main
  .text.uart_data_cb
-                0x0000000008000df4      0x264 main.o
-                0x0000000008000df4                uart_data_cb
+                0x0000000008000e30      0x264 main.o
+                0x0000000008000e30                uart_data_cb
  .text.ADC1_COMP_IRQHandler
-                0x0000000008001058      0x120 main.o
-                0x0000000008001058                ADC1_COMP_IRQHandler
+                0x0000000008001094      0x120 main.o
+                0x0000000008001094                ADC1_COMP_IRQHandler
  .text.__NVIC_EnableIRQ
-                0x0000000008001178       0x34 system.o
+                0x00000000080011b4       0x34 system.o
  .text.__NVIC_SetPriority
-                0x00000000080011ac       0xdc system.o
+                0x00000000080011e8       0xdc system.o
  .text.SysTick_Config
-                0x0000000008001288       0x48 system.o
+                0x00000000080012c4       0x48 system.o
  .text.GPIO_Init
-                0x00000000080012d0      0x148 system.o
-                0x00000000080012d0                GPIO_Init
+                0x000000000800130c      0x148 system.o
+                0x000000000800130c                GPIO_Init
  .text.delay_Init
-                0x0000000008001418       0x3c system.o
-                0x0000000008001418                delay_Init
+                0x0000000008001454       0x3c system.o
+                0x0000000008001454                delay_Init
  .text.SysTick_Handler
-                0x0000000008001454       0x30 system.o
-                0x0000000008001454                SysTick_Handler
+                0x0000000008001490       0x30 system.o
+                0x0000000008001490                SysTick_Handler
  .text.TIM1_Init
-                0x0000000008001484      0x214 system.o
-                0x0000000008001484                TIM1_Init
+                0x00000000080014c0      0x214 system.o
+                0x00000000080014c0                TIM1_Init
  .text.ADC1_Init
-                0x0000000008001698       0x74 system.o
-                0x0000000008001698                ADC1_Init
- .text.ulli2a   0x000000000800170c      0x104 tinyprintf.o
- .text.lli2a    0x0000000008001810       0x40 tinyprintf.o
- .text.uli2a    0x0000000008001850       0xbe tinyprintf.o
- .text.li2a     0x000000000800190e       0x30 tinyprintf.o
- .text.ui2a     0x000000000800193e       0xbe tinyprintf.o
- .text.i2a      0x00000000080019fc       0x30 tinyprintf.o
- .text.a2d      0x0000000008001a2c       0x60 tinyprintf.o
- .text.a2u      0x0000000008001a8c       0x76 tinyprintf.o
- .text.putchw   0x0000000008001b02      0x1a8 tinyprintf.o
- *fill*         0x0000000008001caa        0x2 
+                0x00000000080016d4       0x74 system.o
+                0x00000000080016d4                ADC1_Init
+ .text.ulli2a   0x0000000008001748      0x104 tinyprintf.o
+ .text.lli2a    0x000000000800184c       0x40 tinyprintf.o
+ .text.uli2a    0x000000000800188c       0xbe tinyprintf.o
+ .text.li2a     0x000000000800194a       0x30 tinyprintf.o
+ .text.ui2a     0x000000000800197a       0xbe tinyprintf.o
+ .text.i2a      0x0000000008001a38       0x30 tinyprintf.o
+ .text.a2d      0x0000000008001a68       0x60 tinyprintf.o
+ .text.a2u      0x0000000008001ac8       0x76 tinyprintf.o
+ .text.putchw   0x0000000008001b3e      0x1a8 tinyprintf.o
+ *fill*         0x0000000008001ce6        0x2 
  .text.tfp_format
-                0x0000000008001cac      0x3d4 tinyprintf.o
-                0x0000000008001cac                tfp_format
+                0x0000000008001ce8      0x3d4 tinyprintf.o
+                0x0000000008001ce8                tfp_format
  .text.init_printf
-                0x0000000008002080       0x28 tinyprintf.o
-                0x0000000008002080                init_printf
+                0x00000000080020bc       0x28 tinyprintf.o
+                0x00000000080020bc                init_printf
  .text.tfp_printf
-                0x00000000080020a8       0x34 tinyprintf.o
-                0x00000000080020a8                tfp_printf
+                0x00000000080020e4       0x34 tinyprintf.o
+                0x00000000080020e4                tfp_printf
  .text.__NVIC_EnableIRQ
-                0x00000000080020dc       0x34 uart.o
+                0x0000000008002118       0x34 uart.o
  .text.UART_Init
-                0x0000000008002110      0x100 uart.o
-                0x0000000008002110                UART_Init
+                0x000000000800214c      0x100 uart.o
+                0x000000000800214c                UART_Init
  .text.UART1_IRQHandler
-                0x0000000008002210       0xfc uart.o
-                0x0000000008002210                UART1_IRQHandler
+                0x000000000800224c       0xfc uart.o
+                0x000000000800224c                UART1_IRQHandler
  .text.UART_tx_send_char
-                0x000000000800230c       0x70 uart.o
-                0x000000000800230c                UART_tx_send_char
+                0x0000000008002348       0x70 uart.o
+                0x0000000008002348                UART_tx_send_char
  .text.UART_tx_send
-                0x000000000800237c       0x2a uart.o
-                0x000000000800237c                UART_tx_send
- .text.putc     0x00000000080023a6       0x20 uart.o
-                0x00000000080023a6                putc
- *fill*         0x00000000080023c6        0x2 
+                0x00000000080023b8       0x2a uart.o
+                0x00000000080023b8                UART_tx_send
+ .text.putc     0x00000000080023e2       0x20 uart.o
+                0x00000000080023e2                putc
+ *fill*         0x0000000008002402        0x2 
  .text.Reset_Handler
-                0x00000000080023c8       0x50 startup_mm32spin06xx.o
-                0x00000000080023c8                Reset_Handler
+                0x0000000008002404       0x50 startup_mm32spin06xx.o
+                0x0000000008002404                Reset_Handler
  .text.Default_Handler
-                0x0000000008002418        0x2 startup_mm32spin06xx.o
-                0x0000000008002418                TIM1_BRK_UP_TRG_COM_IRQHandler
-                0x0000000008002418                HardFault_Handler
-                0x0000000008002418                PVD_IRQHandler
-                0x0000000008002418                PendSV_Handler
-                0x0000000008002418                NMI_Handler
-                0x0000000008002418                I2C1_IRQHandler
-                0x0000000008002418                RTC_BKP_IRQHandler
-                0x0000000008002418                RCC_CRS_IRQHandler
-                0x0000000008002418                SPI1_IRQHandler
-                0x0000000008002418                CAN_IRQHandler
-                0x0000000008002418                EXTI2_3_IRQHandler
-                0x0000000008002418                TIM17_IRQHandler
-                0x0000000008002418                UART2_IRQHandler
-                0x0000000008002418                TIM16_IRQHandler
-                0x0000000008002418                TIM3_IRQHandler
-                0x0000000008002418                EXTI4_15_IRQHandler
-                0x0000000008002418                DMA1_Channel1_IRQHandler
-                0x0000000008002418                Default_Handler
-                0x0000000008002418                TIM14_IRQHandler
-                0x0000000008002418                DMA1_Channel4_5_IRQHandler
-                0x0000000008002418                EXTI0_1_IRQHandler
-                0x0000000008002418                SPI2_IRQHandler
-                0x0000000008002418                SVC_Handler
-                0x0000000008002418                WWDG_IRQHandler
-                0x0000000008002418                TIM2_IRQHandler
-                0x0000000008002418                DMA1_Channel2_3_IRQHandler
-                0x0000000008002418                HWDIV_IRQHandler
-                0x0000000008002418                FLASH_IRQHandler
-                0x0000000008002418                TIM1_CC_IRQHandler
- *fill*         0x000000000800241a        0x2 
+                0x0000000008002454        0x2 startup_mm32spin06xx.o
+                0x0000000008002454                TIM1_BRK_UP_TRG_COM_IRQHandler
+                0x0000000008002454                HardFault_Handler
+                0x0000000008002454                PVD_IRQHandler
+                0x0000000008002454                PendSV_Handler
+                0x0000000008002454                NMI_Handler
+                0x0000000008002454                I2C1_IRQHandler
+                0x0000000008002454                RTC_BKP_IRQHandler
+                0x0000000008002454                RCC_CRS_IRQHandler
+                0x0000000008002454                SPI1_IRQHandler
+                0x0000000008002454                CAN_IRQHandler
+                0x0000000008002454                EXTI2_3_IRQHandler
+                0x0000000008002454                TIM17_IRQHandler
+                0x0000000008002454                UART2_IRQHandler
+                0x0000000008002454                TIM16_IRQHandler
+                0x0000000008002454                TIM3_IRQHandler
+                0x0000000008002454                EXTI4_15_IRQHandler
+                0x0000000008002454                DMA1_Channel1_IRQHandler
+                0x0000000008002454                Default_Handler
+                0x0000000008002454                TIM14_IRQHandler
+                0x0000000008002454                DMA1_Channel4_5_IRQHandler
+                0x0000000008002454                EXTI0_1_IRQHandler
+                0x0000000008002454                SPI2_IRQHandler
+                0x0000000008002454                SVC_Handler
+                0x0000000008002454                WWDG_IRQHandler
+                0x0000000008002454                TIM2_IRQHandler
+                0x0000000008002454                DMA1_Channel2_3_IRQHandler
+                0x0000000008002454                HWDIV_IRQHandler
+                0x0000000008002454                FLASH_IRQHandler
+                0x0000000008002454                TIM1_CC_IRQHandler
+ *fill*         0x0000000008002456        0x2 
  .text.SystemInit
-                0x000000000800241c       0x78 system_mm32spin06xx_s.o
-                0x000000000800241c                SystemInit
+                0x0000000008002458       0x78 system_mm32spin06xx_s.o
+                0x0000000008002458                SystemInit
  .text.SetSysClockTo72_HSI
-                0x0000000008002494       0xbc system_mm32spin06xx_s.o
+                0x00000000080024d0       0xbc system_mm32spin06xx_s.o
  .text.__libc_init_array
-                0x0000000008002550       0x44 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-init.o)
-                0x0000000008002550                __libc_init_array
+                0x000000000800258c       0x44 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-init.o)
+                0x000000000800258c                __libc_init_array
  .text.startup.register_fini
-                0x0000000008002594       0x18 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-__call_atexit.o)
- .text.atexit   0x00000000080025ac       0x10 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-atexit.o)
-                0x00000000080025ac                atexit
+                0x00000000080025d0       0x18 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-__call_atexit.o)
+ .text.atexit   0x00000000080025e8       0x10 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-atexit.o)
+                0x00000000080025e8                atexit
  .text.__libc_fini_array
-                0x00000000080025bc       0x28 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-fini.o)
-                0x00000000080025bc                __libc_fini_array
+                0x00000000080025f8       0x28 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-fini.o)
+                0x00000000080025f8                __libc_fini_array
  .text.__retarget_lock_acquire_recursive
-                0x00000000080025e4        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-lock.o)
-                0x00000000080025e4                __retarget_lock_acquire_recursive
+                0x0000000008002620        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-lock.o)
+                0x0000000008002620                __retarget_lock_acquire_recursive
  .text.__retarget_lock_release_recursive
-                0x00000000080025e8        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-lock.o)
-                0x00000000080025e8                __retarget_lock_release_recursive
+                0x0000000008002624        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-lock.o)
+                0x0000000008002624                __retarget_lock_release_recursive
  .text.__register_exitproc
-                0x00000000080025ec       0xac /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-__atexit.o)
-                0x00000000080025ec                __register_exitproc
+                0x0000000008002628       0xac /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-__atexit.o)
+                0x0000000008002628                __register_exitproc
  *(.glue_7)
- .glue_7        0x0000000008002698        0x0 linker stubs
+ .glue_7        0x00000000080026d4        0x0 linker stubs
  *(.glue_7t)
- .glue_7t       0x0000000008002698        0x0 linker stubs
+ .glue_7t       0x00000000080026d4        0x0 linker stubs
  *(.eh_frame)
- .eh_frame      0x0000000008002698        0x0 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
+ .eh_frame      0x00000000080026d4        0x0 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
  *(.init)
- .init          0x0000000008002698        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crti.o
-                0x0000000008002698                _init
- .init          0x000000000800269c        0x8 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtn.o
+ .init          0x00000000080026d4        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crti.o
+                0x00000000080026d4                _init
+ .init          0x00000000080026d8        0x8 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtn.o
  *(.fini)
- .fini          0x00000000080026a4        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crti.o
-                0x00000000080026a4                _fini
- .fini          0x00000000080026a8        0x8 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtn.o
-                0x00000000080026b0                . = ALIGN (0x4)
-                0x00000000080026b0                _etext = .
+ .fini          0x00000000080026e0        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crti.o
+                0x00000000080026e0                _fini
+ .fini          0x00000000080026e4        0x8 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtn.o
+                0x00000000080026ec                . = ALIGN (0x4)
+                0x00000000080026ec                _etext = .
 
-.vfp11_veneer   0x00000000080026b0        0x0
- .vfp11_veneer  0x00000000080026b0        0x0 linker stubs
+.vfp11_veneer   0x00000000080026ec        0x0
+ .vfp11_veneer  0x00000000080026ec        0x0 linker stubs
 
-.v4_bx          0x00000000080026b0        0x0
- .v4_bx         0x00000000080026b0        0x0 linker stubs
+.v4_bx          0x00000000080026ec        0x0
+ .v4_bx         0x00000000080026ec        0x0 linker stubs
 
-.iplt           0x00000000080026b0        0x0
- .iplt          0x00000000080026b0        0x0 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
+.iplt           0x00000000080026ec        0x0
+ .iplt          0x00000000080026ec        0x0 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
 
-.rodata         0x00000000080026b0      0x348
-                0x00000000080026b0                . = ALIGN (0x4)
+.rodata         0x00000000080026ec      0x348
+                0x00000000080026ec                . = ALIGN (0x4)
  *(.rodata)
- .rodata        0x00000000080026b0       0xc0 main.o
+ .rodata        0x00000000080026ec       0xc0 main.o
  *(.rodata*)
  .rodata.sinus_table
-                0x0000000008002770      0x200 main.o
-                0x0000000008002770                sinus_table
+                0x00000000080027ac      0x200 main.o
+                0x00000000080027ac                sinus_table
  .rodata.tfp_format
-                0x0000000008002970       0x84 tinyprintf.o
+                0x00000000080029ac       0x84 tinyprintf.o
  .rodata._global_impure_ptr
-                0x00000000080029f4        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-impure.o)
-                0x00000000080029f4                _global_impure_ptr
-                0x00000000080029f8                . = ALIGN (0x4)
+                0x0000000008002a30        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-impure.o)
+                0x0000000008002a30                _global_impure_ptr
+                0x0000000008002a34                . = ALIGN (0x4)
 
-.ARM.extab      0x00000000080029f8        0x0
-                0x00000000080029f8                . = ALIGN (0x4)
+.ARM.extab      0x0000000008002a34        0x0
+                0x0000000008002a34                . = ALIGN (0x4)
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x00000000080029f8                . = ALIGN (0x4)
+                0x0000000008002a34                . = ALIGN (0x4)
 
-.ARM            0x00000000080029f8        0x8
-                0x00000000080029f8                . = ALIGN (0x4)
-                0x00000000080029f8                __exidx_start = .
+.ARM            0x0000000008002a34        0x8
+                0x0000000008002a34                . = ALIGN (0x4)
+                0x0000000008002a34                __exidx_start = .
  *(.ARM.exidx*)
- .ARM.exidx     0x00000000080029f8        0x8 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
-                0x0000000008002a00                __exidx_end = .
-                0x0000000008002a00                . = ALIGN (0x4)
+ .ARM.exidx     0x0000000008002a34        0x8 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
+                0x0000000008002a3c                __exidx_end = .
+                0x0000000008002a3c                . = ALIGN (0x4)
 
-.rel.dyn        0x0000000008002a00        0x0
- .rel.iplt      0x0000000008002a00        0x0 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
+.rel.dyn        0x0000000008002a3c        0x0
+ .rel.iplt      0x0000000008002a3c        0x0 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
 
-.preinit_array  0x0000000008002a00        0x0
-                0x0000000008002a00                . = ALIGN (0x4)
-                0x0000000008002a00                PROVIDE (__preinit_array_start = .)
+.preinit_array  0x0000000008002a3c        0x0
+                0x0000000008002a3c                . = ALIGN (0x4)
+                0x0000000008002a3c                PROVIDE (__preinit_array_start = .)
  *(.preinit_array*)
-                0x0000000008002a00                PROVIDE (__preinit_array_end = .)
-                0x0000000008002a00                . = ALIGN (0x4)
+                0x0000000008002a3c                PROVIDE (__preinit_array_end = .)
+                0x0000000008002a3c                . = ALIGN (0x4)
 
-.init_array     0x0000000008002a00        0x8
-                0x0000000008002a00                . = ALIGN (0x4)
-                0x0000000008002a00                PROVIDE (__init_array_start = .)
+.init_array     0x0000000008002a3c        0x8
+                0x0000000008002a3c                . = ALIGN (0x4)
+                0x0000000008002a3c                PROVIDE (__init_array_start = .)
  *(SORT_BY_NAME(.init_array.*))
  .init_array.00000
-                0x0000000008002a00        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-__call_atexit.o)
+                0x0000000008002a3c        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-__call_atexit.o)
  *(.init_array*)
- .init_array    0x0000000008002a04        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
-                0x0000000008002a08                PROVIDE (__init_array_end = .)
-                0x0000000008002a08                . = ALIGN (0x4)
+ .init_array    0x0000000008002a40        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
+                0x0000000008002a44                PROVIDE (__init_array_end = .)
+                0x0000000008002a44                . = ALIGN (0x4)
 
-.fini_array     0x0000000008002a08        0x4
-                0x0000000008002a08                . = ALIGN (0x4)
-                0x0000000008002a08                PROVIDE (__fini_array_start = .)
+.fini_array     0x0000000008002a44        0x4
+                0x0000000008002a44                . = ALIGN (0x4)
+                0x0000000008002a44                PROVIDE (__fini_array_start = .)
  *(SORT_BY_NAME(.fini_array.*))
  *(.fini_array*)
- .fini_array    0x0000000008002a08        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
-                0x0000000008002a0c                PROVIDE (__fini_array_end = .)
-                0x0000000008002a0c                . = ALIGN (0x4)
-                0x0000000008002a0c                _sidata = LOADADDR (.data)
+ .fini_array    0x0000000008002a44        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
+                0x0000000008002a48                PROVIDE (__fini_array_end = .)
+                0x0000000008002a48                . = ALIGN (0x4)
+                0x0000000008002a48                _sidata = LOADADDR (.data)
 
-.data           0x0000000020000000      0x434 load address 0x0000000008002a0c
+.data           0x0000000020000000      0x43c load address 0x0000000008002a48
                 0x0000000020000000                . = ALIGN (0x4)
                 0x0000000020000000                _sdata = .
  *(.data)
  *(.data*)
+ .data.enablePID
+                0x0000000020000000        0x1 main.o
+                0x0000000020000000                enablePID
+ *fill*         0x0000000020000001        0x3 
  .data.sync_phase
-                0x0000000020000000        0x4 main.o
-                0x0000000020000000                sync_phase
+                0x0000000020000004        0x4 main.o
+                0x0000000020000004                sync_phase
  .data.SystemCoreClock
-                0x0000000020000004        0x4 system_mm32spin06xx_s.o
-                0x0000000020000004                SystemCoreClock
+                0x0000000020000008        0x4 system_mm32spin06xx_s.o
+                0x0000000020000008                SystemCoreClock
+ *fill*         0x000000002000000c        0x4 
  .data.impure_data
-                0x0000000020000008      0x428 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-impure.o)
+                0x0000000020000010      0x428 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-impure.o)
  .data.__atexit_recursive_mutex
-                0x0000000020000430        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-__call_atexit.o)
-                0x0000000020000430                __atexit_recursive_mutex
+                0x0000000020000438        0x4 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-__call_atexit.o)
+                0x0000000020000438                __atexit_recursive_mutex
  *(.RamFunc)
  *(.RamFunc*)
-                0x0000000020000434                . = ALIGN (0x4)
-                0x0000000020000434                _edata = .
+                0x000000002000043c                . = ALIGN (0x4)
+                0x000000002000043c                _edata = .
 
-.igot.plt       0x0000000020000434        0x0 load address 0x0000000008002e40
- .igot.plt      0x0000000020000434        0x0 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
-                0x0000000020000434                . = ALIGN (0x4)
+.igot.plt       0x000000002000043c        0x0 load address 0x0000000008002e84
+ .igot.plt      0x000000002000043c        0x0 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
+                0x000000002000043c                . = ALIGN (0x4)
 
-.bss            0x0000000020000434      0x29c load address 0x0000000008002e40
-                0x0000000020000434                _sbss = .
-                0x0000000020000434                __bss_start__ = _sbss
+.bss            0x000000002000043c      0x29c load address 0x0000000008002e84
+                0x000000002000043c                _sbss = .
+                0x000000002000043c                __bss_start__ = _sbss
  *(.bss)
- .bss           0x0000000020000434       0x1c /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
+ .bss           0x000000002000043c       0x1c /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/crtbegin.o
  *(.bss*)
- .bss.enable    0x0000000020000450        0x1 main.o
-                0x0000000020000450                enable
- *fill*         0x0000000020000451        0x1 
- .bss.cur_DC    0x0000000020000452        0x2 main.o
-                0x0000000020000452                cur_DC
+ .bss.enable    0x0000000020000458        0x1 main.o
+                0x0000000020000458                enable
+ *fill*         0x0000000020000459        0x1 
+ .bss.cur_DC    0x000000002000045a        0x2 main.o
+                0x000000002000045a                cur_DC
  .bss.adc_irq_counter
-                0x0000000020000454        0x4 main.o
-                0x0000000020000454                adc_irq_counter
- .bss.ur        0x0000000020000458        0x4 main.o
-                0x0000000020000458                ur
- .bss.vr        0x000000002000045c        0x4 main.o
-                0x000000002000045c                vr
- .bss.wr        0x0000000020000460        0x4 main.o
-                0x0000000020000460                wr
- .bss.enablePID
-                0x0000000020000464        0x1 main.o
-                0x0000000020000464                enablePID
- *fill*         0x0000000020000465        0x3 
+                0x000000002000045c        0x4 main.o
+                0x000000002000045c                adc_irq_counter
+ .bss.ur        0x0000000020000460        0x4 main.o
+                0x0000000020000460                ur
+ .bss.vr        0x0000000020000464        0x4 main.o
+                0x0000000020000464                vr
+ .bss.wr        0x0000000020000468        0x4 main.o
+                0x0000000020000468                wr
  .bss.angle_by_hall_cur
-                0x0000000020000468        0x4 main.o
-                0x0000000020000468                angle_by_hall_cur
- .bss.turns_by_hall
                 0x000000002000046c        0x4 main.o
-                0x000000002000046c                turns_by_hall
- .bss.rotor_phase_abs
+                0x000000002000046c                angle_by_hall_cur
+ .bss.turns_by_hall
                 0x0000000020000470        0x4 main.o
-                0x0000000020000470                rotor_phase_abs
- .bss.motor_phase_abs
+                0x0000000020000470                turns_by_hall
+ .bss.rotor_phase_abs
                 0x0000000020000474        0x4 main.o
-                0x0000000020000474                motor_phase_abs
- .bss.expect_phase_abs
+                0x0000000020000474                rotor_phase_abs
+ .bss.motor_phase_abs
                 0x0000000020000478        0x4 main.o
-                0x0000000020000478                expect_phase_abs
- .bss.adc_v0    0x000000002000047c        0x2 main.o
-                0x000000002000047c                adc_v0
- .bss.adc_v1    0x000000002000047e        0x2 main.o
-                0x000000002000047e                adc_v1
- .bss.adc_v4    0x0000000020000480        0x2 main.o
-                0x0000000020000480                adc_v4
- .bss.adc_v5    0x0000000020000482        0x2 main.o
-                0x0000000020000482                adc_v5
- .bss.adc_v7    0x0000000020000484        0x2 main.o
-                0x0000000020000484                adc_v7
- .bss.adc_v2    0x0000000020000486        0x2 main.o
-                0x0000000020000486                adc_v2
- .bss.adc_v6    0x0000000020000488        0x2 main.o
-                0x0000000020000488                adc_v6
- *fill*         0x000000002000048a        0x2 
- .bss.tick1ms   0x000000002000048c        0x4 main.o
-                0x000000002000048c                tick1ms
+                0x0000000020000478                motor_phase_abs
+ .bss.expect_phase_abs
+                0x000000002000047c        0x4 main.o
+                0x000000002000047c                expect_phase_abs
+ .bss.adc_v0    0x0000000020000480        0x2 main.o
+                0x0000000020000480                adc_v0
+ .bss.adc_v1    0x0000000020000482        0x2 main.o
+                0x0000000020000482                adc_v1
+ .bss.adc_v4    0x0000000020000484        0x2 main.o
+                0x0000000020000484                adc_v4
+ .bss.adc_v5    0x0000000020000486        0x2 main.o
+                0x0000000020000486                adc_v5
+ .bss.adc_v7    0x0000000020000488        0x2 main.o
+                0x0000000020000488                adc_v7
+ .bss.adc_v2    0x000000002000048a        0x2 main.o
+                0x000000002000048a                adc_v2
+ .bss.adc_v6    0x000000002000048c        0x2 main.o
+                0x000000002000048c                adc_v6
+ *fill*         0x000000002000048e        0x2 
+ .bss.tick1ms   0x0000000020000490        0x4 main.o
+                0x0000000020000490                tick1ms
  .bss.amplitude
-                0x0000000020000490        0x2 main.o
-                0x0000000020000490                amplitude
- *fill*         0x0000000020000492        0x2 
+                0x0000000020000494        0x2 main.o
+                0x0000000020000494                amplitude
+ *fill*         0x0000000020000496        0x2 
  .bss.rotor_phase_est
-                0x0000000020000494        0x4 main.o
- .bss.last_rotor_phase_est
                 0x0000000020000498        0x4 main.o
+ .bss.last_rotor_phase_est
+                0x000000002000049c        0x4 main.o
  .bss.stall_counter
-                0x000000002000049c        0x2 main.o
+                0x00000000200004a0        0x2 main.o
  .bss.motor_stalled
-                0x000000002000049e        0x1 main.o
-                0x000000002000049e                motor_stalled
- *fill*         0x000000002000049f        0x1 
+                0x00000000200004a2        0x1 main.o
+                0x00000000200004a2                motor_stalled
+ *fill*         0x00000000200004a3        0x1 
  .bss.phase_integral
-                0x00000000200004a0        0x4 main.o
+                0x00000000200004a4        0x4 main.o
  .bss.pwm_margin
-                0x00000000200004a4        0x2 main.o
- *fill*         0x00000000200004a6        0x2 
- .bss.c1.2      0x00000000200004a8        0x4 main.o
- .bss.divider.1
-                0x00000000200004ac        0x4 main.o
- .bss.angle_by_hall_prev.0
+                0x00000000200004a8        0x2 main.o
+ *fill*         0x00000000200004aa        0x2 
+ .bss.c1.3      0x00000000200004ac        0x4 main.o
+ .bss.button_power_state.2
                 0x00000000200004b0        0x4 main.o
- .bss.DelayCnt  0x00000000200004b4        0x4 system.o
- .bss.millis    0x00000000200004b8        0x4 system.o
-                0x00000000200004b8                millis
+ .bss.divider.1
+                0x00000000200004b4        0x4 main.o
+ .bss.angle_by_hall_prev.0
+                0x00000000200004b8        0x4 main.o
+ .bss.DelayCnt  0x00000000200004bc        0x4 system.o
+ .bss.millis    0x00000000200004c0        0x4 system.o
+                0x00000000200004c0                millis
  .bss.stdout_putf
-                0x00000000200004bc        0x4 tinyprintf.o
+                0x00000000200004c4        0x4 tinyprintf.o
  .bss.stdout_putp
-                0x00000000200004c0        0x4 tinyprintf.o
+                0x00000000200004c8        0x4 tinyprintf.o
  .bss.uart_tx_buffer
-                0x00000000200004c4      0x200 uart.o
-                0x00000000200004c4                uart_tx_buffer
+                0x00000000200004cc      0x200 uart.o
+                0x00000000200004cc                uart_tx_buffer
  .bss.uart_tx_buffer_index
-                0x00000000200006c4        0x4 uart.o
-                0x00000000200006c4                uart_tx_buffer_index
+                0x00000000200006cc        0x4 uart.o
+                0x00000000200006cc                uart_tx_buffer_index
  .bss.uart_tx_buffer_length
-                0x00000000200006c8        0x4 uart.o
-                0x00000000200006c8                uart_tx_buffer_length
+                0x00000000200006d0        0x4 uart.o
+                0x00000000200006d0                uart_tx_buffer_length
  .bss.__lock___atexit_recursive_mutex
-                0x00000000200006cc        0x1 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-lock.o)
-                0x00000000200006cc                __lock___atexit_recursive_mutex
+                0x00000000200006d4        0x1 /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a(lib_a-lock.o)
+                0x00000000200006d4                __lock___atexit_recursive_mutex
  *(COMMON)
-                0x00000000200006d0                . = ALIGN (0x4)
- *fill*         0x00000000200006cd        0x3 
-                0x00000000200006d0                _ebss = .
-                0x00000000200006d0                __bss_end__ = _ebss
+                0x00000000200006d8                . = ALIGN (0x4)
+ *fill*         0x00000000200006d5        0x3 
+                0x00000000200006d8                _ebss = .
+                0x00000000200006d8                __bss_end__ = _ebss
 
 ._user_heap_stack
-                0x00000000200006d0      0x300 load address 0x0000000008002e40
-                0x00000000200006d0                . = ALIGN (0x8)
+                0x00000000200006d8      0x300 load address 0x0000000008002e84
+                0x00000000200006d8                . = ALIGN (0x8)
                 [!provide]                        PROVIDE (end = .)
                 [!provide]                        PROVIDE (_end = .)
-                0x00000000200007d0                . = (. + _Min_Heap_Size)
- *fill*         0x00000000200006d0      0x100 
-                0x00000000200009d0                . = (. + _Min_Stack_Size)
- *fill*         0x00000000200007d0      0x200 
-                0x00000000200009d0                . = ALIGN (0x8)
+                0x00000000200007d8                . = (. + _Min_Heap_Size)
+ *fill*         0x00000000200006d8      0x100 
+                0x00000000200009d8                . = (. + _Min_Stack_Size)
+ *fill*         0x00000000200007d8      0x200 
+                0x00000000200009d8                . = ALIGN (0x8)
 
 /DISCARD/
  libc.a(*)
@@ -672,13 +675,13 @@ LOAD /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-
 LOAD /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib/thumb/v6-m/nofp/libm.a
 LOAD /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v6-m/nofp/libgcc.a
 
-.debug_info     0x0000000000000000     0x2a10
- .debug_info    0x0000000000000000      0xc86 main.o
- .debug_info    0x0000000000000c86      0xbb1 system.o
- .debug_info    0x0000000000001837      0x851 tinyprintf.o
- .debug_info    0x0000000000002088      0x704 uart.o
- .debug_info    0x000000000000278c       0x22 startup_mm32spin06xx.o
- .debug_info    0x00000000000027ae      0x262 system_mm32spin06xx_s.o
+.debug_info     0x0000000000000000     0x2a33
+ .debug_info    0x0000000000000000      0xca9 main.o
+ .debug_info    0x0000000000000ca9      0xbb1 system.o
+ .debug_info    0x000000000000185a      0x851 tinyprintf.o
+ .debug_info    0x00000000000020ab      0x704 uart.o
+ .debug_info    0x00000000000027af       0x22 startup_mm32spin06xx.o
+ .debug_info    0x00000000000027d1      0x262 system_mm32spin06xx_s.o
 
 .debug_abbrev   0x0000000000000000      0xa03
  .debug_abbrev  0x0000000000000000      0x201 main.o
@@ -710,26 +713,26 @@ LOAD /opt/homebrew/Cellar/arm-none-eabi-gcc/10.3-2021.07/gcc/bin/../lib/gcc/arm-
  .debug_ranges  0x0000000000000170       0x20 startup_mm32spin06xx.o
  .debug_ranges  0x0000000000000190       0x18 system_mm32spin06xx_s.o
 
-.debug_line     0x0000000000000000     0x16b0
- .debug_line    0x0000000000000000      0x779 main.o
- .debug_line    0x0000000000000779      0x3be system.o
- .debug_line    0x0000000000000b37      0x703 tinyprintf.o
- .debug_line    0x000000000000123a      0x2d8 uart.o
- .debug_line    0x0000000000001512       0x8e startup_mm32spin06xx.o
- .debug_line    0x00000000000015a0      0x110 system_mm32spin06xx_s.o
+.debug_line     0x0000000000000000     0x16d1
+ .debug_line    0x0000000000000000      0x79a main.o
+ .debug_line    0x000000000000079a      0x3be system.o
+ .debug_line    0x0000000000000b58      0x703 tinyprintf.o
+ .debug_line    0x000000000000125b      0x2d8 uart.o
+ .debug_line    0x0000000000001533       0x8e startup_mm32spin06xx.o
+ .debug_line    0x00000000000015c1      0x110 system_mm32spin06xx_s.o
 
-.debug_str      0x0000000000000000      0xc0f
- .debug_str     0x0000000000000000      0x601 main.o
-                                        0x690 (size before relaxing)
- .debug_str     0x0000000000000601      0x332 system.o
+.debug_str      0x0000000000000000      0xc20
+ .debug_str     0x0000000000000000      0x618 main.o
+                                        0x6ba (size before relaxing)
+ .debug_str     0x0000000000000618      0x332 system.o
                                         0x720 (size before relaxing)
- .debug_str     0x0000000000000933      0x164 tinyprintf.o
+ .debug_str     0x000000000000094a      0x164 tinyprintf.o
                                         0x312 (size before relaxing)
- .debug_str     0x0000000000000a97       0xcc uart.o
+ .debug_str     0x0000000000000aae       0xc6 uart.o
                                         0x5b6 (size before relaxing)
- .debug_str     0x0000000000000b63       0x3b startup_mm32spin06xx.o
+ .debug_str     0x0000000000000b74       0x3b startup_mm32spin06xx.o
                                          0x8f (size before relaxing)
- .debug_str     0x0000000000000b9e       0x71 system_mm32spin06xx_s.o
+ .debug_str     0x0000000000000baf       0x71 system_mm32spin06xx_s.o
                                         0x280 (size before relaxing)
 
 .comment        0x0000000000000000       0x49

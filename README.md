@@ -8,8 +8,15 @@
 - https://github.com/AILIFE4798/Hoverboard-Firmware-Hack-Gen2.x-MM32 (вже нема)
 - https://github.com/RoboDurden/Hoverboard-Firmware-Hack-Gen2.x
 
-Даташит на проц: https://github.com/SoCXin/MM32SPIN422C/blob/main/docs/DS_MM32SPIN422C_SC.pdf
-Ага, китайською.
+Даташит на проц:
+https://www.mindmotion.com.cn/download/products/DS_MM32SPIN05x_q_EN.pdf
+
+Корисні посилання:
+https://github.com/a-v-s/mm32_fds
+
+До речі, у конролера є апаратний подільник. Якось так задіяти:
+
+https://github.com/koendv/MM32SPIN27-Arduino/blob/525f27bd91b756aeabad3b7a706f60cb9fb75275/mm32/mm32-libgcc/_udivsi3.c#L7
 
 Я все внаглую стирів з https://github.com/trondin/MM32SPIN05_Hoberboard_hack
 
