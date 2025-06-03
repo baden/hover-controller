@@ -144,7 +144,7 @@ void ADC1_Init(void)
 
  	RCC->AHBENR |= RCC_AHBENR_GPIOA | RCC_AHBENR_GPIOB;
     GPIOA->CRL  = 0;
-    GPIOB->CRL &= 0xFFFFFF00;
+    // GPIOB->CRL &= 0xFFFFFF00;
 
     ADC1->CFGR = ADC_CFGR_ADEN |  ADC_CFGR_TEN | ADC_CFGR_VEN |  ADC_CFGR_SAMCTL_7_5;   //14.4MHz, temper & ref enable
     ADC1->CR = ADC_CR_SCAN | ADC_CR_T1_TRIG  | ADC_CR_ADIE;	  	// interruption

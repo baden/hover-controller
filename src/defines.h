@@ -2,7 +2,17 @@
 
 #include <stdint.h>
 
+// REMOTE_CONTROL_MODE:
+// 0 - UART control mode (default)
+// 1 - UART pins PB4(UART1_RX) used as + button, PB6(UART1_TX) used as - button
+#define REMOTE_CONTROL_MODE_UART 0
+#define REMOTE_CONTROL_MODE_UART_PINS 1
+
+#define REMOTE_CONTROL_MODE REMOTE_CONTROL_MODE_UART_PINS
+
+#if REMOTE_CONTROL_MODE == REMOTE_CONTROL_MODE_UART
 #define UART_BAUD             115200                  // UART3 baud rate (short wired cable)
+#endif
 
 // =========================================================
 //  POWER GPIO

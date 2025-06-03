@@ -6,6 +6,8 @@
 
 extern uint32_t SystemCoreClock;
 
+#if REMOTE_CONTROL_MODE == REMOTE_CONTROL_MODE_UART
+
 void putc(void* p, char c);
 
 void UART_Init(void)
@@ -166,3 +168,4 @@ void putc(void* p, char c)
 // int _lseek(int fd, int ptr, int dir) { return 0; }
 // int _read(int fd, char *ptr, int len) { return 0; }
 // int _fstat(int fd, void *st) { return 0; }
+#endif

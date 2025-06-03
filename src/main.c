@@ -6,7 +6,9 @@
 #include "core_cm0.h" // або "cmsis_gcc.h", якщо потрібно
 // #include <stdio.h>
 
+#if REMOTE_CONTROL_MODE == REMOTE_CONTROL_MODE_UART
 void UART_tx(void);
+#endif
 
 uint8_t enable = 0;        // initially motor is disabled for SAFETY
 
@@ -314,6 +316,11 @@ int main(void)
     static unsigned c1 = 0;
     static unsigned button_power_state = 0;
 
+    #if REMOTE_CONTROL_MODE == REMOTE_CONTROL_MODE_UART_PINS
+    static unsigned button_minus_state = 0; // PB6(UART1_TX) - minus button
+    static unsigned button_plus_state = 0;  // PB4(UART1_RX) - plus button
+    #endif
+
     RCC->AHBENR &= ~RCC_AHBENR_DMA1EN;   // DMA1CLK_DISABLE();
     delay_Init();
     GPIO_Init();
@@ -321,30 +328,59 @@ int main(void)
     TIM1_Init();
     ADC1_Init();
 
-    UART_Init();
+    #if REMOTE_CONTROL_MODE == REMOTE_CONTROL_MODE_UART
+        UART_Init();
+    #else
+        // // 1 - UART pins PB4(UART1_RX) used as + button, PB6(UART1_TX) used as - button
+        // Init pins for digital buttons + and -
+        // RCC->AHBENR |= RCC_AHBENR_GPIOB; // Enable GPIOB clock
+        // Setup pull-up for buttons plus and minus
+
+        // // button minus - PB6
+        // GPIOB->CRL &= ~(GPIO_CNF_MODE_MASK << GPIO_CRL_CNF_MODE_6_Pos);             // PB6
+        // GPIOB->CRL |= GPIO_CNF_MODE_FLOATING << GPIO_CRL_CNF_MODE_6_Pos;
+
+        // GPIOB->ODR |= (1 << 6);                    // Pull-up for PB6 (button minus)
+
+        // // button plus - PB4
+        // GPIOB->CRL &= ~(GPIO_CNF_MODE_MASK << GPIO_CRL_CNF_MODE_4_Pos);             // PB4
+        // GPIOB->CRL |= GPIO_CNF_MODE_FLOATING << GPIO_CRL_CNF_MODE_4_Pos;
+        // GPIOB->ODR |= (1 << 4);                    // Pull-up for PB4 (button plus)
+
+
+        // PB4 (button plus)
+        GPIOB->CRL &= ~(0xF << (4 * 4));           // Очистити CNF+MODE для піну 4
+        GPIOB->CRL |=  (0x8 << (4 * 4));           // CNF=10 (input with pull-up/down), MODE=00 (input)
+        GPIOB->ODR |= (1 << 4);                    // Підтяжка до VCC (pull-up)
+
+        // PB6 (button minus)
+        GPIOB->CRL &= ~(0xF << (6 * 4));           // Очистити CNF+MODE для піну 6
+        GPIOB->CRL |=  (0x8 << (6 * 4));           // CNF=10 (input with pull-up/down), MODE=00 (input)
+        GPIOB->ODR |= (1 << 6);                    // Підтяжка до VCC (pull-up)
+
+        // // Для PB4 (button plus)
+        // GPIOB->CRL &= ~(0xF << (4 * 4));           // Очистити CNF+MODE для піну 4
+        // GPIOB->CRL |=  (0x8 << (4 * 4));           // CNF=10 (input with pull-up/down), MODE=00 (input)
+        // GPIOB->ODR |= (1 << 4);                    // Підтяжка до VCC (pull-up)
+
+        // // Для PB6 (button minus)
+        // GPIOB->CRL &= ~(0xF << (6 * 4));           // Очистити CNF+MODE для піну 6
+        // GPIOB->CRL |=  (0x8 << (6 * 4));           // CNF=10 (input with pull-up/down), MODE=00 (input)
+        // GPIOB->ODR |= (1 << 6);                    // Підтяжка до VCC (pull-up)
+    #endif
+
     OFF_PORT->BSRR = 1<<OFF_PIN;   // Activate Latch
 
     // Start ADC conversion
     ADC1->CR |= ADC_CR_TRGEN;
 
-    UART_tx_send("\r\nINFO: Hover board stepper motor test\r\n");
+    #if REMOTE_CONTROL_MODE == REMOTE_CONTROL_MODE_UART
+        UART_tx_send("\r\nINFO: Hover board stepper motor test\r\n");
+    #endif
 
     for(;;) {
-        // // LEDR_ON();
-        // // delay_ms(100);
-        // LEDG_ON();
-        // // delay_ms(100);
-        // // LEDY_ON();
-        // delay_ms(50);
-        // // LEDR_OFF();
-        // // delay_ms(100);
-        // LEDG_OFF();
-        // // delay_ms(100);
-        // // LEDY_OFF();
-        // delay_ms(50);
         if(tick1ms) {
             // TODO: Disable ADC interrupts here to avoid conflicts (do not stop conversion!)
-
 
             __disable_irq();        // Можливо це зайве
             // NVIC_DisableIRQ(ADC1_IRQn)   // Альтернатива
@@ -366,14 +402,45 @@ int main(void)
                     if (!button_power_state) {
                         // Button pressed
                         enable = !enable;
+                        if(enable) {
+                            LEDG_ON(); // Turn on green LED
+                        } else {
+                            LEDG_OFF(); // Turn off green LED
+                        }
                     }
                 }
+
+            #if REMOTE_CONTROL_MODE == REMOTE_CONTROL_MODE_UART_PINS
+                // PB6(UART1_TX) - minus button
+                // PB4(UART1_RX) - plus button
+                unsigned new_button_minus_state = (GPIOB->IDR & (1<<6)) ? 0 : 1; // Read minus button state (active low)
+                if (new_button_minus_state != button_minus_state) {
+                    button_minus_state = new_button_minus_state;
+                    if (button_minus_state) {
+                        // Minus button pressed
+                        expect_phase_abs -= _A(360) * 15; // Decrease motor phase by 1 full motor rotation
+                    }
+                }
+                unsigned new_button_plus_state = (GPIOB->IDR & (1<<4)) ? 0 : 1; // Read plus button state (active low)
+                if (new_button_plus_state != button_plus_state) {
+                    button_plus_state = new_button_plus_state;
+                    if (button_plus_state) {
+                        // Plus button pressed
+                        expect_phase_abs += _A(360) * 15; // Increase motor phase by 1 full motor rotation
+                    }
+                }
+            #endif
+
+
+
+
                 c1 = 0;
 
                 uint8_t hall_u = !(GPIOC->IDR & (1<<15));
                 uint8_t hall_v = !(GPIOC->IDR & (1<<14));
                 uint8_t hall_w = !(GPIOC->IDR & (1<<13));
 
+                #if REMOTE_CONTROL_MODE == REMOTE_CONTROL_MODE_UART
                 tfp_printf(
                     // " ADC:%d"
                     // " cur_phaB:%d"
@@ -413,6 +480,7 @@ int main(void)
                     , motor_stalled ? "yes" : "no"
                     // hall_u ? '1' : '0', hall_v ? '1' : '0', hall_w ? '1' : '0'
                 );
+                #endif
                 // adc_irq_counter = 0; // Reset ADC IRQ counter
             }
         }
@@ -420,6 +488,7 @@ int main(void)
     }
 }
 
+#if REMOTE_CONTROL_MODE == REMOTE_CONTROL_MODE_UART
 void uart_data_cb(char v)
 {
     if(v == '1') {
@@ -494,7 +563,7 @@ void uart_data_cb(char v)
         enable = !enable;  // Toggle enable state
     }
 }
-
+#endif
 // Якшо я нічого не плутаю, то значення повинно бути в діапазоні:
 // (pwm_margin) ... (PWM_RES - pwm_margin)
 // Середина = PWM_RES / 2
